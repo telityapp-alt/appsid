@@ -894,45 +894,6 @@ function HomePage() {
         </div>
       </section>
 
-      <section
-        className="wide-marquee-section"
-        aria-label="Large showcase gallery"
-      >
-        <div className="wide-marquee-container">
-          <div className="wide-marquee-track">
-            {Array(5)
-              .fill(realShowcaseItems)
-              .flat()
-              .map((item, idx) => (
-                <div key={idx} className="wide-marquee-card">
-                  <img
-                    src={item.img}
-                    alt={`Showcase ${item.brand}`}
-                    className="wide-marquee-image"
-                  />
-                  <button type="button" className="cta-button hero-marquee-btn">
-                    <img
-                      src={item.img}
-                      alt=""
-                      style={{
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "6px",
-                        marginRight: "10px",
-                        objectFit: "cover",
-                        border: "1px solid rgba(0,0,0,0.1)",
-                      }}
-                    />
-                    <span style={{ fontWeight: 500, marginRight: "6px" }}>
-                      Propose to
-                    </span>{" "}
-                    <strong style={{ fontWeight: 800 }}>{item.brand}</strong>
-                  </button>
-                </div>
-              ))}
-          </div>
-        </div>
-      </section>
 
       {/* Popover rendered on /portfolio/:slug route, overlaid on home */}
       <Outlet />
