@@ -27,6 +27,7 @@ import MarketplacePage from "./MarketplacePage";
 import BursaPage from "./BursaPage";
 import ForumPage from "./ForumPage";
 import ToolsPage from "./ToolsPage";
+import PatunganPage from "./PatunganPage";
 import ContactPopover from "./ContactPopover";
 
 const tabs = [
@@ -977,6 +978,14 @@ function App() {
               >
                 Tools
               </NavLink>
+              <NavLink
+                to="/patungan"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+              >
+                Patungan
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1108,6 +1117,15 @@ function App() {
               >
                 Tools
               </NavLink>
+              <NavLink
+                to="/patungan"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+                onClick={() => setMenuOpen(false)}
+              >
+                Patungan
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1165,6 +1183,16 @@ function App() {
             element={
               <main className="content content-wide">
                 <PerksPage />
+              </main>
+            }
+          />
+
+          {/* Patungan */}
+          <Route
+            path="/patungan"
+            element={
+              <main className="content content-wide">
+                <PatunganPage />
               </main>
             }
           />
