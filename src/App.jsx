@@ -26,6 +26,7 @@ import PreppyPage from "./PreppyPage";
 import MarketplacePage from "./MarketplacePage";
 import BursaPage from "./BursaPage";
 import ForumPage from "./ForumPage";
+import ToolsPage from "./ToolsPage";
 import ContactPopover from "./ContactPopover";
 
 const tabs = [
@@ -968,6 +969,14 @@ function App() {
               >
                 Forum
               </NavLink>
+              <NavLink
+                to="/tools"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+              >
+                Tools
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1090,6 +1099,15 @@ function App() {
               >
                 Forum
               </NavLink>
+              <NavLink
+                to="/tools"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+                onClick={() => setMenuOpen(false)}
+              >
+                Tools
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1147,6 +1165,16 @@ function App() {
             element={
               <main className="content content-wide">
                 <PerksPage />
+              </main>
+            }
+          />
+
+          {/* Tools index */}
+          <Route
+            path="/tools"
+            element={
+              <main className="content content-wide">
+                <ToolsPage />
               </main>
             }
           />
