@@ -23,6 +23,7 @@ import FranchisePage from "./FranchisePage";
 import FranchiseMethodPage from "./FranchiseMethodPage";
 import PreppyPage from "./PreppyPage";
 
+import MarketplacePage from "./MarketplacePage";
 import ContactPopover from "./ContactPopover";
 
 const tabs = [
@@ -941,6 +942,14 @@ function App() {
               >
                 Gratisan
               </NavLink>
+              <NavLink
+                to="/marketplace"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+              >
+                Marketplace
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1037,6 +1046,16 @@ function App() {
               </NavLink>
 
               <NavLink
+                to="/marketplace"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+                onClick={() => setMenuOpen(false)}
+              >
+                Marketplace
+              </NavLink>
+
+              <NavLink
                 to="/news"
                 className={({ isActive }) =>
                   isActive ? "active-nav" : undefined
@@ -1092,6 +1111,16 @@ function App() {
             element={
               <main className="content content-wide">
                 <PerksPage />
+              </main>
+            }
+          />
+
+          {/* Marketplace */}
+          <Route
+            path="/marketplace"
+            element={
+              <main className="content content-wide">
+                <MarketplacePage />
               </main>
             }
           />
