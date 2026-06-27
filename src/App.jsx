@@ -960,6 +960,14 @@ function App() {
               >
                 Bursa
               </NavLink>
+              <NavLink
+                to="/forum"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+              >
+                Forum
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1073,6 +1081,15 @@ function App() {
               >
                 Bursa
               </NavLink>
+              <NavLink
+                to="/forum"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+                onClick={() => setMenuOpen(false)}
+              >
+                Forum
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1130,6 +1147,16 @@ function App() {
             element={
               <main className="content content-wide">
                 <PerksPage />
+              </main>
+            }
+          />
+
+          {/* Forum */}
+          <Route
+            path="/forum"
+            element={
+              <main className="content content-wide">
+                <ForumPage />
               </main>
             }
           />
