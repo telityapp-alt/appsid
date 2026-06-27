@@ -25,6 +25,7 @@ import PreppyPage from "./PreppyPage";
 
 import MarketplacePage from "./MarketplacePage";
 import BursaPage from "./BursaPage";
+import ForumPage from "./ForumPage";
 import ContactPopover from "./ContactPopover";
 
 const tabs = [
