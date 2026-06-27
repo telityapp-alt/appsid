@@ -15,15 +15,14 @@ import PerksPage from "./PerksPage";
 import RetroPopover from "./RetroPopover";
 import OdooPage, { OdooPageWithPopover } from "./OdooPage";
 import SolutionsPage from "./SolutionsPage";
-import PromoPopup from "./PromoPopup";
-import PricingPage from "./PricingPage";
+
 import DocsPage from "./DocsPage";
 import Footer from "./Footer";
 import HppCalculatorPage from "./HppCalculatorPage";
 import FranchisePage from "./FranchisePage";
 import FranchiseMethodPage from "./FranchiseMethodPage";
 import PreppyPage from "./PreppyPage";
-import SafuBotProposalPage from "./SafuBotProposalPage";
+
 import ContactPopover from "./ContactPopover";
 
 const tabs = [
@@ -37,7 +36,12 @@ const tabs = [
       "Dari visual ceria buat audiens anak hingga fitur lead magnet elegan untuk korporat. Setiap inci website dirancang pakai trik psikologi supaya pengunjung nyaman dan tergerak melakukan aksi.",
     stat: "Retensi user 3x lebih tinggi dengan UX berbasis psikologi",
     eyebrow: "Web Apps & Sites",
-    primaryLinks: ["User Flow Design", "Conversion Funnel", "Interactive Tools", "Lead Magnets"],
+    primaryLinks: [
+      "User Flow Design",
+      "Conversion Funnel",
+      "Interactive Tools",
+      "Lead Magnets",
+    ],
     secondaryLinks: [
       "Psychology-driven UX",
       "Gamification elements",
@@ -81,7 +85,12 @@ const tabs = [
       "Basic kita itu konsultan ERP. Kita paham ribetnya data terpisah. Makanya kita setup sistem Odoo yang menyatukan operasional, sales, dan HR dengan flow yang intuitif dan mudah dipahami tim Anda.",
     stat: "Operational efficiency 40% meningkat dengan Odoo ERP",
     eyebrow: "Odoo ERP Setup",
-    primaryLinks: ["Sales Pipeline", "Inventory", "Accounting", "HR Management"],
+    primaryLinks: [
+      "Sales Pipeline",
+      "Inventory",
+      "Accounting",
+      "HR Management",
+    ],
     secondaryLinks: [
       "Custom modules",
       "Data migration",
@@ -125,7 +134,12 @@ const tabs = [
       "Rahasia app bertahan lama ada di habit design. Kita bangun mobile apps pakai pendekatan psikologi user, menciptakan flow natural yang bikin mereka otomatis terus balik pakai aplikasi Anda.",
     stat: "D30 retention 61% dengan habit design yang proven",
     eyebrow: "Mobile Apps Dev",
-    primaryLinks: ["Hook Model", "Push Notifications", "Gamification", "Progress Tracking"],
+    primaryLinks: [
+      "Hook Model",
+      "Push Notifications",
+      "Gamification",
+      "Progress Tracking",
+    ],
     secondaryLinks: [
       "Onboarding flow",
       "Reward system",
@@ -273,29 +287,25 @@ export const libraryCards = [
         step: "Discovery via Free Database",
         tag: "Day 1",
         desc: "User menemukan Preppy melalui pencarian beasiswa. Database 5000+ entries gratis membangun trust dan reciprocity.",
-        callout:
-          "70% visitors explore database — first touch dengan brand",
+        callout: "70% visitors explore database — first touch dengan brand",
       },
       {
         step: "AI Prediction Hook",
         tag: "Day 1-3",
         desc: "User mencoba AI college prediction tool (free tier). Mereka experience personalized value dan lihat potensi platform.",
-        callout:
-          "42% yang explore database mencoba AI prediction",
+        callout: "42% yang explore database mencoba AI prediction",
       },
       {
         step: "Premium Conversion",
         tag: "Day 3-7",
         desc: "User sudah invested time dan data. Premium unlock (full AI strategy, mock interview, adaptive testing) solve pain point mereka untuk competitive edge.",
-        callout:
-          "18% convert to paid within 7 days (3x industry average)",
+        callout: "18% convert to paid within 7 days (3x industry average)",
       },
       {
         step: "Habit Formation",
         tag: "Day 7-30",
         desc: "Daily streaks, push notifications, leaderboards, dan achievement unlocks create habit loop. Loss aversion membuat mereka tidak mau break progress.",
-        callout:
-          "61% retention at D30 (far exceeds EdTech average of 20-25%)",
+        callout: "61% retention at D30 (far exceeds EdTech average of 20-25%)",
       },
     ],
     richContent: {
@@ -325,7 +335,10 @@ export const libraryCards = [
         {
           type: "kv",
           rows: [
-            { label: "Tech Stack", value: "React + Vite + Capacitor + Tailwind" },
+            {
+              label: "Tech Stack",
+              value: "React + Vite + Capacitor + Tailwind",
+            },
             { label: "Platform", value: "Web (PWA) + iOS + Android" },
             {
               label: "Animation",
@@ -339,7 +352,11 @@ export const libraryCards = [
         },
       ],
     },
-    gallery: ["/preppy/hero-web.png", "/preppy/screen-1.webp", "/preppy/screen-2.webp"],
+    gallery: [
+      "/preppy/hero-web.png",
+      "/preppy/screen-1.webp",
+      "/preppy/screen-2.webp",
+    ],
   },
   {
     name: "HR Asia",
@@ -401,8 +418,7 @@ export const libraryCards = [
         step: "Newsletter Subscription",
         tag: "Day 3-7",
         desc: "After experiencing value, user subscribe ke Asia HR Pulse newsletter. Positioning: curated intelligence briefing (3 news + 1 resource + 1 regulation update weekly), bukan promo email. Subscribers = qualified leads actively interested in HR intelligence.",
-        callout:
-          "Newsletter subscribers convert to Aire leads at 15% rate",
+        callout: "Newsletter subscribers convert to Aire leads at 15% rate",
       },
       {
         step: "Aire Introduction",
@@ -439,7 +455,10 @@ export const libraryCards = [
         {
           type: "kv",
           rows: [
-            { label: "Tech Stack", value: "Next.js 14 + Tailwind + Cloudflare Workers" },
+            {
+              label: "Tech Stack",
+              value: "Next.js 14 + Tailwind + Cloudflare Workers",
+            },
             { label: "Content", value: "MDX (markdown) + Git-based CMS" },
             {
               label: "Deployment",
@@ -553,8 +572,14 @@ export const libraryCards = [
         {
           type: "kv",
           rows: [
-            { label: "Tech Stack", value: "Next.js 14 + Tailwind + Cloudflare Workers" },
-            { label: "Content", value: "MDX (markdown) + Git-based CMS (PR workflow)" },
+            {
+              label: "Tech Stack",
+              value: "Next.js 14 + Tailwind + Cloudflare Workers",
+            },
+            {
+              label: "Content",
+              value: "MDX (markdown) + Git-based CMS (PR workflow)",
+            },
             {
               label: "Search",
               value: "Pagefind (static index) or Algolia DocSearch",
@@ -622,22 +647,19 @@ export const libraryCards = [
         step: "Template Selection",
         tag: "Day 1-2",
         desc: "User browse 50+ role templates (Senior Engineer, PM, Data Scientist). Tiap template show cited research (.54 predictive validity) dan example questions. Pick one, inject, send.",
-        callout:
-          "Under 60 seconds from browse to first assessment sent",
+        callout: "Under 60 seconds from browse to first assessment sent",
       },
       {
         step: "Free Tier Value Delivery",
         tag: "Day 2-7",
         desc: "Candidates complete assessments. User get instant ranked shortlist dengan per-dimension breakdown (System Design: 8/10, Collaboration: 6/10). Semua gratis, no hidden costs.",
-        callout:
-          "User experience full value before seeing premium pitch",
+        callout: "User experience full value before seeing premium pitch",
       },
       {
         step: "Premium Upsell at Decision Point",
         tag: "Day 7-14",
         desc: "User sudah punya shortlist tapi butuh deeper signal. Aire offer: AI deep-dive interview ($8), CV parsing + scoring ($8), video interview dengan integrity monitoring ($8). Pay per completed assessment.",
-        callout:
-          "18% convert to paid within first hiring cycle",
+        callout: "18% convert to paid within first hiring cycle",
       },
     ],
     richContent: {
@@ -788,13 +810,15 @@ function CheckIcon() {
 
 function HeaderLogo() {
   return (
-    <div style={{ 
-      fontSize: "24px", 
-      fontWeight: 900, 
-      color: "#11222b", 
-      letterSpacing: "-0.05em",
-      fontFamily: "monospace"
-    }}>
+    <div
+      style={{
+        fontSize: "24px",
+        fontWeight: 900,
+        color: "#11222b",
+        letterSpacing: "-0.05em",
+        fontFamily: "monospace",
+      }}
+    >
       BWA
     </div>
   );
@@ -803,7 +827,18 @@ function HeaderLogo() {
 function Wordmark() {
   return (
     <div className="wordmark" aria-label="Build With Azra wordmark">
-      <span className="wordmark-text" style={{ fontSize: "28px", fontWeight: 900, letterSpacing: "-0.05em", color: "#11222b", fontFamily: "inherit" }}>Build With Azra</span>
+      <span
+        className="wordmark-text"
+        style={{
+          fontSize: "28px",
+          fontWeight: 900,
+          letterSpacing: "-0.05em",
+          color: "#11222b",
+          fontFamily: "inherit",
+        }}
+      >
+        Build With Azra
+      </span>
     </div>
   );
 }
@@ -936,7 +971,6 @@ function HomePage() {
 
   return (
     <>
-      <PromoPopup />
       <section className="hero">
         <div className="hero-copy">
           <Wordmark />
@@ -962,26 +996,52 @@ function HomePage() {
           </ul>
 
           <div className="hero-actions">
-            <button type="button" className="cta-button" onClick={() => navigate("/apps")}>
+            <button
+              type="button"
+              className="cta-button"
+              onClick={() => navigate("/apps")}
+            >
               Our Apps
             </button>
-            <button type="button" className="ghost-button" onClick={() => setContactOpen(true)}>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => setContactOpen(true)}
+            >
               Contact Me
             </button>
           </div>
 
           <div className="hero-links">
-            <a href="/" onClick={(e) => { e.preventDefault(); setContactOpen(true); }}>
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                setContactOpen(true);
+              }}
+            >
               <LinkIcon />
               MCP
             </a>
             <span className="hero-dot" />
-            <a href="/" onClick={(e) => { e.preventDefault(); setContactOpen(true); }}>
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                setContactOpen(true);
+              }}
+            >
               <PlayIcon />
               Watch a demo
             </a>
             <span className="hero-dot" />
-            <a href="/" onClick={(e) => { e.preventDefault(); setContactOpen(true); }}>
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                setContactOpen(true);
+              }}
+            >
               <HeadsetIcon />
               Talk to a human
             </a>
@@ -1003,23 +1063,39 @@ function HomePage() {
         <div className="hero-visual">
           <div className="hero-marquee-container">
             <div className="hero-marquee-track">
-              {Array(4).fill(realShowcaseItems).flat().map((item, idx) => (
-                <div key={idx} className="hero-marquee-card">
-                  <img
-                    src={item.img}
-                    alt={`Showcase ${item.brand}`}
-                    className="hero-marquee-image"
-                  />
-                  <button type="button" className="cta-button hero-marquee-btn">
-                    <img 
-                      src={item.img} 
-                      alt="" 
-                      style={{ width: "24px", height: "24px", borderRadius: "6px", marginRight: "10px", objectFit: "cover", border: "1px solid rgba(0,0,0,0.1)" }} 
+              {Array(4)
+                .fill(realShowcaseItems)
+                .flat()
+                .map((item, idx) => (
+                  <div key={idx} className="hero-marquee-card">
+                    <img
+                      src={item.img}
+                      alt={`Showcase ${item.brand}`}
+                      className="hero-marquee-image"
                     />
-                    <span style={{ fontWeight: 500, marginRight: "6px" }}>Propose to</span> {item.brand}
-                  </button>
-                </div>
-              ))}
+                    <button
+                      type="button"
+                      className="cta-button hero-marquee-btn"
+                    >
+                      <img
+                        src={item.img}
+                        alt=""
+                        style={{
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "6px",
+                          marginRight: "10px",
+                          objectFit: "cover",
+                          border: "1px solid rgba(0,0,0,0.1)",
+                        }}
+                      />
+                      <span style={{ fontWeight: 500, marginRight: "6px" }}>
+                        Propose to
+                      </span>{" "}
+                      {item.brand}
+                    </button>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
@@ -1165,35 +1241,54 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="wide-marquee-section" aria-label="Large showcase gallery">
+      <section
+        className="wide-marquee-section"
+        aria-label="Large showcase gallery"
+      >
         <div className="wide-marquee-container">
           <div className="wide-marquee-track">
-            {Array(5).fill(realShowcaseItems).flat().map((item, idx) => (
-              <div key={idx} className="wide-marquee-card">
-                <img
-                  src={item.img}
-                  alt={`Showcase ${item.brand}`}
-                  className="wide-marquee-image"
-                />
-                <button type="button" className="cta-button hero-marquee-btn">
-                  <img 
-                    src={item.img} 
-                    alt="" 
-                    style={{ width: "24px", height: "24px", borderRadius: "6px", marginRight: "10px", objectFit: "cover", border: "1px solid rgba(0,0,0,0.1)" }} 
+            {Array(5)
+              .fill(realShowcaseItems)
+              .flat()
+              .map((item, idx) => (
+                <div key={idx} className="wide-marquee-card">
+                  <img
+                    src={item.img}
+                    alt={`Showcase ${item.brand}`}
+                    className="wide-marquee-image"
                   />
-                  <span style={{ fontWeight: 500, marginRight: "6px" }}>Propose to</span> <strong style={{ fontWeight: 800 }}>{item.brand}</strong>
-                </button>
-              </div>
-            ))}
+                  <button type="button" className="cta-button hero-marquee-btn">
+                    <img
+                      src={item.img}
+                      alt=""
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "6px",
+                        marginRight: "10px",
+                        objectFit: "cover",
+                        border: "1px solid rgba(0,0,0,0.1)",
+                      }}
+                    />
+                    <span style={{ fontWeight: 500, marginRight: "6px" }}>
+                      Propose to
+                    </span>{" "}
+                    <strong style={{ fontWeight: 800 }}>{item.brand}</strong>
+                  </button>
+                </div>
+              ))}
           </div>
         </div>
       </section>
 
       {/* Popover rendered on /portfolio/:slug route, overlaid on home */}
       <Outlet />
-      
+
       {/* Contact Popover */}
-      <ContactPopover isOpen={contactOpen} onClose={() => setContactOpen(false)} />
+      <ContactPopover
+        isOpen={contactOpen}
+        onClose={() => setContactOpen(false)}
+      />
     </>
   );
 }
@@ -1248,33 +1343,7 @@ function App() {
               >
                 Gratisan
               </NavLink>
-              <NavLink
-                to="/franchise"
-                className={({ isActive }) =>
-                  isActive ? "active-nav" : undefined
-                }
-              >
-                For Franchise
-              </NavLink>
-              <div className="nav-dropdown-container">
-                <a href="/" onClick={(event) => event.preventDefault()}>
-                  Solutions <CaretIcon />
-                </a>
-                <div className="dropdown-menu">
-                  <NavLink to="/solutions/growth" className={({ isActive }) => isActive ? "active-dropdown" : undefined}>Growth</NavLink>
-                  <NavLink to="/solutions/research-website" className={({ isActive }) => isActive ? "active-dropdown" : undefined}>Research-based Website</NavLink>
-                  <NavLink to="/solutions/web-apps-growth" className={({ isActive }) => isActive ? "active-dropdown" : undefined}>Web Apps Growth</NavLink>
-                  <NavLink to="/odoo" className={({ isActive }) => isActive ? "active-dropdown" : undefined}>Odoo</NavLink>
-                </div>
-              </div>
-              <NavLink
-                to="/pricing"
-                className={({ isActive }) =>
-                  isActive ? "active-nav" : undefined
-                }
-              >
-                Pricing
-              </NavLink>
+
               <NavLink
                 to="/news"
                 className={({ isActive }) =>
@@ -1368,34 +1437,7 @@ function App() {
               >
                 Gratisan
               </NavLink>
-              <NavLink
-                to="/franchise"
-                className={({ isActive }) =>
-                  isActive ? "mobile-nav-link active-nav" : "mobile-nav-link"
-                }
-                onClick={() => setMenuOpen(false)}
-              >
-                For Franchise
-              </NavLink>
 
-              <NavLink
-                to="/solutions"
-                className={({ isActive }) =>
-                  isActive ? "active-nav" : undefined
-                }
-                onClick={() => setMenuOpen(false)}
-              >
-                Solutions
-              </NavLink>
-              <NavLink
-                to="/pricing"
-                className={({ isActive }) =>
-                  isActive ? "active-nav" : undefined
-                }
-                onClick={() => setMenuOpen(false)}
-              >
-                Pricing
-              </NavLink>
               <NavLink
                 to="/news"
                 className={({ isActive }) =>
@@ -1465,15 +1507,7 @@ function App() {
               </main>
             }
           />
-          <Route
-            path="/news/:slug"
-            element={<NewsArticlePage />}
-          />
-
-          {/* Pricing */}
-          <Route path="/pricing" element={<MainShell wide={true} />}>
-            <Route index element={<PricingPage />} />
-          </Route>
+          <Route path="/news/:slug" element={<NewsArticlePage />} />
 
           {/* Tools */}
           <Route path="/hpp-calculator" element={<MainShell wide={true} />}>
@@ -1490,19 +1524,16 @@ function App() {
           <Route
             path="/preppy"
             element={
-              <main className="content" style={{ padding: 0, maxWidth: "100%" }}>
+              <main
+                className="content"
+                style={{ padding: 0, maxWidth: "100%" }}
+              >
                 <PreppyPage />
               </main>
             }
           />
-
-          {/* SafuBot Proposal */}
-          <Route
-            path="/for-safubot"
-            element={<SafuBotProposalPage />}
-          />
         </Routes>
-        
+
         <Footer />
       </div>
     </div>
