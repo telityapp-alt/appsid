@@ -24,6 +24,7 @@ import FranchiseMethodPage from "./FranchiseMethodPage";
 import PreppyPage from "./PreppyPage";
 
 import MarketplacePage from "./MarketplacePage";
+import BursaPage from "./BursaPage";
 import ContactPopover from "./ContactPopover";
 
 const tabs = [
@@ -950,6 +951,14 @@ function App() {
               >
                 Marketplace
               </NavLink>
+              <NavLink
+                to="/bursa"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+              >
+                Bursa
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1054,6 +1063,15 @@ function App() {
               >
                 Marketplace
               </NavLink>
+              <NavLink
+                to="/bursa"
+                className={({ isActive }) =>
+                  isActive ? "active-nav" : undefined
+                }
+                onClick={() => setMenuOpen(false)}
+              >
+                Bursa
+              </NavLink>
 
               <NavLink
                 to="/news"
@@ -1111,6 +1129,16 @@ function App() {
             element={
               <main className="content content-wide">
                 <PerksPage />
+              </main>
+            }
+          />
+
+          {/* Bursa */}
+          <Route
+            path="/bursa"
+            element={
+              <main className="content content-wide">
+                <BursaPage />
               </main>
             }
           />
