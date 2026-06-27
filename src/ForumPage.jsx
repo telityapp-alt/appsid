@@ -14,9 +14,18 @@ const CATEGORIES = [
 ];
 
 const TAGS = [
-  "micro-saas", "mvp", "open source", "vibe coding",
-  "monetisasi", "landing page", "nextjs", "python",
-  "growth", "bootstrap", "b2b", "ai agent",
+  "micro-saas",
+  "mvp",
+  "open source",
+  "vibe coding",
+  "monetisasi",
+  "landing page",
+  "nextjs",
+  "python",
+  "growth",
+  "bootstrap",
+  "b2b",
+  "ai agent",
 ];
 
 const SORT_OPTIONS = ["Terbaru", "Trending", "Top"];
@@ -29,7 +38,8 @@ const POSTS = [
     timeAgo: "2 jam lalu",
     category: "SaaS & Produk",
     flair: "Show & Tell",
-    title: "Gua launch SaaS pertama gua setelah 3 bulan vibe coding — ini hasilnya",
+    title:
+      "Gua launch SaaS pertama gua setelah 3 bulan vibe coding — ini hasilnya",
     body: "Setelah 3 bulan ngebuild sambil kerja full-time, akhirnya launch. MRR bulan pertama Rp 2.4 juta dari 12 paying user. Bukan angka gede, tapi validasi pertama yang nyata. Ini breakdown apa yang works dan apa yang nggak...",
     upvotes: 142,
     comments: 38,
@@ -71,7 +81,8 @@ const POSTS = [
     timeAgo: "1 hari lalu",
     category: "Developer",
     flair: "Tanya",
-    title: "Best stack untuk bikin marketplace akun digital di 2025? Next.js atau Remix?",
+    title:
+      "Best stack untuk bikin marketplace akun digital di 2025? Next.js atau Remix?",
     body: "Lagi ngebuild marketplace kecil-kecilan mirip BursaVerse. Sekarang pakai Next.js App Router tapi mulai ngerasa overhead-nya banyak. Ada yang pernah migrate ke Remix atau pakai Hono + Astro?",
     upvotes: 47,
     comments: 29,
@@ -85,7 +96,8 @@ const POSTS = [
     timeAgo: "1 hari lalu",
     category: "Fundraising",
     flair: "Resource",
-    title: "List 14 investor Indonesia yang aktif invest di early-stage SaaS — updated Juni 2025",
+    title:
+      "List 14 investor Indonesia yang aktif invest di early-stage SaaS — updated Juni 2025",
     body: "Gua compile ini setelah 3 bulan fundraising untuk startup gua. Dari 40+ investor yang gua reach out, ini 14 yang actually reply dan ada di stage pre-seed sampai seed untuk produk SaaS...",
     upvotes: 318,
     comments: 52,
@@ -99,7 +111,8 @@ const POSTS = [
     timeAgo: "2 hari lalu",
     category: "Developer",
     flair: "Open Source",
-    title: "Gua open-source-in template boilerplate SaaS multi-tenant pakai Next.js + Supabase",
+    title:
+      "Gua open-source-in template boilerplate SaaS multi-tenant pakai Next.js + Supabase",
     body: "Udah 6 bulan gua pakai internal di 3 project berbeda. Fitur: auth, billing Stripe, org management, rbac, email dengan Resend, dan dark mode. MIT license, gratis selamanya...",
     upvotes: 276,
     comments: 83,
@@ -127,7 +140,8 @@ const POSTS = [
     timeAgo: "3 hari lalu",
     category: "Marketing",
     flair: "Case Study",
-    title: "Dari 0 ke 1000 user organik dalam 60 hari — full breakdown SEO micro-saas",
+    title:
+      "Dari 0 ke 1000 user organik dalam 60 hari — full breakdown SEO micro-saas",
     body: "Produk: tools generator konten marketing untuk UMKM. Strategi yang gua pakai: long-tail keyword clustering, programmatic SEO untuk 800+ halaman, dan link building dari komunitas dev lokal...",
     upvotes: 189,
     comments: 67,
@@ -140,33 +154,35 @@ const POSTS = [
 
 const FLAIR_STYLE = {
   "Show & Tell": { bg: "#edfaf4", border: "#a3e4c6", color: "#1a6b48" },
-  "Diskusi":     { bg: "#f0f4ff", border: "#b8c9f5", color: "#2d4fa0" },
-  "Tips":        { bg: "#fff8ec", border: "#f5d68a", color: "#8a5c00" },
-  "Tanya":       { bg: "#f5f2ec", border: "#d9d1c2", color: "#55606d" },
-  "Resource":    { bg: "#fef2f2", border: "#f5b8b8", color: "#a03030" },
+  Diskusi: { bg: "#f0f4ff", border: "#b8c9f5", color: "#2d4fa0" },
+  Tips: { bg: "#fff8ec", border: "#f5d68a", color: "#8a5c00" },
+  Tanya: { bg: "#f5f2ec", border: "#d9d1c2", color: "#55606d" },
+  Resource: { bg: "#fef2f2", border: "#f5b8b8", color: "#a03030" },
   "Open Source": { bg: "#f0f4ff", border: "#b8c9f5", color: "#2d4fa0" },
-  "Collab":      { bg: "#fff8ec", border: "#f5d68a", color: "#8a5c00" },
-  "Case Study":  { bg: "#edfaf4", border: "#a3e4c6", color: "#1a6b48" },
+  Collab: { bg: "#fff8ec", border: "#f5d68a", color: "#8a5c00" },
+  "Case Study": { bg: "#edfaf4", border: "#a3e4c6", color: "#1a6b48" },
 };
 
 // ─── Sub-components ────────────────────────────────────────────────────────
 
 function Avatar({ initial, size = 32 }) {
   return (
-    <div style={{
-      width: size,
-      height: size,
-      borderRadius: "50%",
-      background: "linear-gradient(135deg, #f6a61e 0%, #cf860d 100%)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      fontWeight: 800,
-      fontSize: size * 0.4,
-      color: "#1a1208",
-      letterSpacing: "-0.01em",
-    }}>
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #f6a61e 0%, #cf860d 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        fontWeight: 800,
+        fontSize: size * 0.4,
+        color: "#1a1208",
+        letterSpacing: "-0.01em",
+      }}
+    >
       {initial}
     </div>
   );
@@ -175,18 +191,20 @@ function Avatar({ initial, size = 32 }) {
 function FlairBadge({ label }) {
   const s = FLAIR_STYLE[label] || FLAIR_STYLE["Diskusi"];
   return (
-    <span style={{
-      display: "inline-flex",
-      alignItems: "center",
-      height: 20,
-      padding: "0 7px",
-      borderRadius: 4,
-      border: `1px solid ${s.border}`,
-      background: s.bg,
-      color: s.color,
-      fontSize: 11,
-      fontWeight: 700,
-    }}>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        height: 20,
+        padding: "0 7px",
+        borderRadius: 4,
+        border: `1px solid ${s.border}`,
+        background: s.bg,
+        color: s.color,
+        fontSize: 11,
+        fontWeight: 700,
+      }}
+    >
       {label}
     </span>
   );
@@ -230,9 +248,15 @@ function UpvoteButton({ count, active, onToggle }) {
         strokeLinejoin="round"
         style={{ width: 12, height: 12 }}
       >
-        <path d="M6 2L2 7h8L6 2z" fill={active ? "currentColor" : "none"} strokeWidth="1.5" />
+        <path
+          d="M6 2L2 7h8L6 2z"
+          fill={active ? "currentColor" : "none"}
+          strokeWidth="1.5"
+        />
       </svg>
-      <span style={{ fontSize: 12, fontWeight: 800, lineHeight: 1 }}>{count}</span>
+      <span style={{ fontSize: 12, fontWeight: 800, lineHeight: 1 }}>
+        {count}
+      </span>
     </button>
   );
 }
@@ -259,18 +283,24 @@ function PostCard({ post }) {
         border: "1px solid #d9d1c2",
         borderBottomWidth: 2,
         borderRadius: 10,
-        background: post.pinned ? "linear-gradient(180deg, #fffdf8 0%, #fffbf2 100%)" : "#fffdf8",
-        boxShadow: "inset 0 -3px 0 rgba(21,19,16,.07), 0 1px 3px rgba(21,19,16,.06)",
+        background: post.pinned
+          ? "linear-gradient(180deg, #fffdf8 0%, #fffbf2 100%)"
+          : "#fffdf8",
+        boxShadow:
+          "inset 0 -3px 0 rgba(21,19,16,.07), 0 1px 3px rgba(21,19,16,.06)",
         cursor: "pointer",
-        transition: "transform 260ms cubic-bezier(.22,1,.36,1), box-shadow 260ms cubic-bezier(.22,1,.36,1)",
+        transition:
+          "transform 260ms cubic-bezier(.22,1,.36,1), box-shadow 260ms cubic-bezier(.22,1,.36,1)",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(2px)";
-        e.currentTarget.style.boxShadow = "inset 0 2px 4px rgba(21,19,16,.05), 0 1px 2px rgba(21,19,16,.04)";
+        e.currentTarget.style.boxShadow =
+          "inset 0 2px 4px rgba(21,19,16,.05), 0 1px 2px rgba(21,19,16,.04)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "";
-        e.currentTarget.style.boxShadow = "inset 0 -3px 0 rgba(21,19,16,.07), 0 1px 3px rgba(21,19,16,.06)";
+        e.currentTarget.style.boxShadow =
+          "inset 0 -3px 0 rgba(21,19,16,.07), 0 1px 3px rgba(21,19,16,.06)";
       }}
     >
       {/* Upvote column */}
@@ -280,76 +310,104 @@ function PostCard({ post }) {
 
       {/* Main content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-
         {/* Meta row: author · time · category · flair · pinned */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            marginBottom: 6,
+          }}
+        >
           <Avatar initial={post.authorInitial} size={22} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#0d1d38" }}>{post.author}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#0d1d38" }}>
+            {post.author}
+          </span>
           <span style={{ fontSize: 11, color: "#7b8594" }}>{post.timeAgo}</span>
           <span className="hero-dot" />
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#55606d" }}>{post.category}</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#55606d" }}>
+            {post.category}
+          </span>
           <FlairBadge label={post.flair} />
           {post.pinned && (
-            <span style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#8a5c00",
-              background: "#fff8ec",
-              border: "1px solid #f5d68a",
-              borderRadius: 4,
-              padding: "0 6px",
-              height: 20,
-              display: "inline-flex",
-              alignItems: "center",
-            }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#8a5c00",
+                background: "#fff8ec",
+                border: "1px solid #f5d68a",
+                borderRadius: 4,
+                padding: "0 6px",
+                height: 20,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+            >
               Pinned
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h3 style={{
-          margin: "0 0 6px",
-          fontSize: 16,
-          fontWeight: 800,
-          color: "#0d1d38",
-          letterSpacing: "-0.02em",
-          lineHeight: 1.3,
-        }}>
+        <h3
+          style={{
+            margin: "0 0 6px",
+            fontSize: 16,
+            fontWeight: 800,
+            color: "#0d1d38",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.3,
+          }}
+        >
           {post.title}
         </h3>
 
         {/* Body preview — 2 lines max */}
-        <p style={{
-          margin: "0 0 10px",
-          fontSize: 13,
-          color: "#55606d",
-          lineHeight: 1.5,
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}>
+        <p
+          style={{
+            margin: "0 0 10px",
+            fontSize: 13,
+            color: "#55606d",
+            lineHeight: 1.5,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
           {post.body}
         </p>
 
         {/* Footer: tags + actions */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
           {/* Tags */}
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
             {post.tags.map((tag) => (
-              <span key={tag} style={{
-                height: 22,
-                padding: "0 8px",
-                borderRadius: 5,
-                border: "1px solid #e0d8cc",
-                background: "#f5f2ec",
-                color: "#55606d",
-                fontSize: 11,
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-              }}>
+              <span
+                key={tag}
+                style={{
+                  height: 22,
+                  padding: "0 8px",
+                  borderRadius: 5,
+                  border: "1px solid #e0d8cc",
+                  background: "#f5f2ec",
+                  color: "#55606d",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
+              >
                 {tag}
               </span>
             ))}
@@ -357,46 +415,72 @@ function PostCard({ post }) {
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <button type="button" style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#7b8594",
-              padding: 0,
-              transition: "color 120ms ease",
-            }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "#0d1d38"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "#7b8594"}
+            <button
+              type="button"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#7b8594",
+                padding: 0,
+                transition: "color 120ms ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#0d1d38")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#7b8594")}
             >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ width: 14, height: 14 }}
+              >
                 <path d="M14 10c0 1.1-.9 2-2 2H4l-2 2V4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v6z" />
               </svg>
               {post.comments} komentar
             </button>
-            <button type="button" style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#7b8594",
-              padding: 0,
-              transition: "color 120ms ease",
-            }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "#0d1d38"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "#7b8594"}
+            <button
+              type="button"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#7b8594",
+                padding: 0,
+                transition: "color 120ms ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#0d1d38")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#7b8594")}
             >
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ width: 14, height: 14 }}
+              >
                 <path d="M4 8a4 4 0 0 1 8 0M4 8a4 4 0 0 0 8 0M4 8H2m10 0h2" />
-                <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="1.5"
+                  fill="currentColor"
+                  stroke="none"
+                />
               </svg>
               Bagikan
             </button>
@@ -411,8 +495,8 @@ function PostCard({ post }) {
 
 export default function ForumPage() {
   const [activeCategory, setActiveCategory] = useState("Semua");
-  const [activeTag, setActiveTag]           = useState(null);
-  const [activeSort, setActiveSort]         = useState("Terbaru");
+  const [activeTag, setActiveTag] = useState(null);
+  const [activeSort, setActiveSort] = useState("Terbaru");
 
   const filtered = useMemo(() => {
     let list = [...POSTS];
@@ -434,84 +518,74 @@ export default function ForumPage() {
       list = [...list].sort((a, b) => b.upvotes - a.upvotes);
     }
     // Terbaru — original order (pinned first)
-    const pinned   = list.filter((p) => p.pinned);
+    const pinned = list.filter((p) => p.pinned);
     const unpinned = list.filter((p) => !p.pinned);
     return [...pinned, ...unpinned];
   }, [activeCategory, activeTag, activeSort]);
 
   return (
     <div style={{ padding: "0 0 60px" }}>
-
-      {/* ── Banner Hero ─────────────────────────────────────────────── */}
-      <div style={{
-        background: "linear-gradient(135deg, #1a1208 0%, #2e1f06 60%, #3d2a08 100%)",
-        borderRadius: "0 0 14px 14px",
-        padding: "52px 48px 44px",
-        marginBottom: 28,
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Ambient glow */}
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse 60% 80% at 85% 50%, rgba(246,166,30,.1) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-
-        <p style={{ fontSize: 13, fontWeight: 700, color: "#f6a61e", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
-          Forum
-        </p>
-        <h1 style={{
-          fontSize: 36,
-          fontWeight: 800,
-          color: "#fffdf8",
-          margin: "0 0 12px",
-          letterSpacing: "-0.04em",
-          lineHeight: 1.1,
-          maxWidth: 540,
-        }}>
-          Diskusi untuk builder Indonesia
-        </h1>
-        <p style={{
-          fontSize: 16,
-          color: "#c9b99a",
-          margin: "0 0 24px",
-          lineHeight: 1.5,
-          maxWidth: 480,
-        }}>
-          Tanya, share, dan connect dengan sesama founder, developer, dan maker. Semua topik soal ngebuild produk digital Indonesia.
-        </p>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button type="button" className="cta-button" style={{ fontSize: 14, height: 38 }}>
-            Buat postingan
-          </button>
-          <button type="button" className="ghost-button" style={{
-            fontSize: 14,
-            height: 38,
-            color: "#fffdf8",
-            borderColor: "rgba(255,255,255,.2)",
-            background: "rgba(255,255,255,.08)",
-          }}>
-            Lihat panduan
-          </button>
+      <section className="perks-hero-panel" style={{ marginBottom: "28px" }}>
+        <div className="perks-hero-copy">
+          <span className="perks-hero-eyebrow">Forum</span>
+          <h2>Diskusi untuk builder Indonesia</h2>
+          <p>
+            Tanya, share, dan connect dengan sesama founder, developer, dan
+            maker. Semua topik soal ngebuild produk digital Indonesia.
+          </p>
+          <div className="hero-actions" style={{ marginTop: 20 }}>
+            <button
+              type="button"
+              className="cta-button"
+              style={{ fontSize: 14, height: 38 }}
+            >
+              Buat postingan
+            </button>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 14, height: 38 }}
+            >
+              Lihat panduan
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Main layout ─────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 28, padding: "0 24px" }}>
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "220px 1fr",
+          gap: 28,
+          padding: "0 24px",
+        }}
+      >
         {/* ── Left sidebar ──────────────────────────────────────────── */}
-        <aside className="apps-left-sidebar" style={{ alignSelf: "start", position: "sticky", top: 20 }}>
-
+        <aside
+          className="apps-left-sidebar"
+          style={{ alignSelf: "start", position: "sticky", top: 20 }}
+        >
           {/* New post CTA */}
-          <button type="button" className="cta-button" style={{ width: "100%", fontSize: 13, height: 34, marginBottom: 4 }}>
+          <button
+            type="button"
+            className="cta-button"
+            style={{ width: "100%", fontSize: 13, height: 34, marginBottom: 4 }}
+          >
             Buat postingan
           </button>
 
           {/* Kategori */}
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "#55606d", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#55606d",
+                margin: "0 0 8px",
+                letterSpacing: "-0.01em",
+              }}
+            >
               Kategori
             </p>
             <div className="tags-list">
@@ -530,7 +604,15 @@ export default function ForumPage() {
 
           {/* Popular tags */}
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "#55606d", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#55606d",
+                margin: "0 0 8px",
+                letterSpacing: "-0.01em",
+              }}
+            >
               Tag populer
             </p>
             <div className="tags-list">
@@ -548,39 +630,79 @@ export default function ForumPage() {
           </div>
 
           {/* Panduan singkat */}
-          <div style={{
-            padding: "12px 14px",
-            border: "1px solid #d9d1c2",
-            borderBottomWidth: 2,
-            borderRadius: 10,
-            background: "#fffdf8",
-            boxShadow: "inset 0 -2px 0 rgba(21,19,16,.07)",
-          }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: "#0d1d38", margin: "0 0 6px" }}>Panduan forum</p>
+          <div
+            style={{
+              padding: "12px 14px",
+              border: "1px solid #d9d1c2",
+              borderBottomWidth: 2,
+              borderRadius: 10,
+              background: "#fffdf8",
+              boxShadow: "inset 0 -2px 0 rgba(21,19,16,.07)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#0d1d38",
+                margin: "0 0 6px",
+              }}
+            >
+              Panduan forum
+            </p>
             {[
               "Judul yang jelas dan spesifik",
               "Satu topik per postingan",
               "Tidak ada spam atau self-promo berlebihan",
               "Berikan konteks yang cukup",
             ].map((rule) => (
-              <p key={rule} style={{ fontSize: 11, color: "#55606d", margin: "0 0 4px", lineHeight: 1.5, display: "flex", gap: 5 }}>
-                <span style={{ color: "#f6a61e", fontWeight: 800, flexShrink: 0 }}>·</span>
+              <p
+                key={rule}
+                style={{
+                  fontSize: 11,
+                  color: "#55606d",
+                  margin: "0 0 4px",
+                  lineHeight: 1.5,
+                  display: "flex",
+                  gap: 5,
+                }}
+              >
+                <span
+                  style={{ color: "#f6a61e", fontWeight: 800, flexShrink: 0 }}
+                >
+                  ·
+                </span>
                 {rule}
               </p>
             ))}
           </div>
-
         </aside>
 
         {/* ── Feed ──────────────────────────────────────────────────── */}
         <main>
-
           {/* Sort bar + stats */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 14,
+              flexWrap: "wrap",
+              gap: 10,
+            }}
+          >
             {/* Stats */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#55606d" }}>
-              <strong style={{ color: "#0d1d38" }}>{filtered.length}</strong> postingan
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                fontSize: 13,
+                color: "#55606d",
+              }}
+            >
+              <strong style={{ color: "#0d1d38" }}>{filtered.length}</strong>{" "}
+              postingan
               {activeCategory !== "Semua" && (
                 <>
                   <span className="hero-dot" />
@@ -590,24 +712,35 @@ export default function ForumPage() {
               {activeTag && (
                 <>
                   <span className="hero-dot" />
-                  <span style={{
-                    height: 22,
-                    padding: "0 8px",
-                    borderRadius: 5,
-                    border: "1px solid #c7820e",
-                    background: "#fff8ec",
-                    color: "#8a5c00",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}>
+                  <span
+                    style={{
+                      height: 22,
+                      padding: "0 8px",
+                      borderRadius: 5,
+                      border: "1px solid #c7820e",
+                      background: "#fff8ec",
+                      color: "#8a5c00",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
                     {activeTag}
                     <button
                       type="button"
                       onClick={() => setActiveTag(null)}
-                      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit", fontWeight: 800, fontSize: 12, lineHeight: 1 }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        color: "inherit",
+                        fontWeight: 800,
+                        fontSize: 12,
+                        lineHeight: 1,
+                      }}
                     >
                       ×
                     </button>
@@ -636,20 +769,21 @@ export default function ForumPage() {
             {filtered.length > 0 ? (
               filtered.map((post) => <PostCard key={post.id} post={post} />)
             ) : (
-              <div style={{
-                padding: "48px 24px",
-                textAlign: "center",
-                color: "#7b8594",
-                fontSize: 14,
-                border: "1px solid #d9d1c2",
-                borderRadius: 10,
-                background: "#fffdf8",
-              }}>
+              <div
+                style={{
+                  padding: "48px 24px",
+                  textAlign: "center",
+                  color: "#7b8594",
+                  fontSize: 14,
+                  border: "1px solid #d9d1c2",
+                  borderRadius: 10,
+                  background: "#fffdf8",
+                }}
+              >
                 Tidak ada postingan yang sesuai filter.
               </div>
             )}
           </div>
-
         </main>
       </div>
     </div>

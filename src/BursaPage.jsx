@@ -48,7 +48,6 @@ const LISTINGS = [
     domainAge: 4,
     growth: null,
     featured: false,
-    emoji: "🔗",
   },
   {
     id: 2,
@@ -64,7 +63,6 @@ const LISTINGS = [
     domainAge: 2,
     growth: null,
     featured: true,
-    emoji: "🚁",
   },
   {
     id: 3,
@@ -80,7 +78,6 @@ const LISTINGS = [
     domainAge: 12,
     growth: "+10.0% MoM",
     featured: false,
-    emoji: "🎮",
   },
 ];
 
@@ -165,16 +162,11 @@ function BursaCard({ item }) {
       <div className="library-card-hero">
         <div
           className="library-card-screenshot-wrap"
-          style={{
-            background: "linear-gradient(135deg, #f5f2ec 0%, #ede8de 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: 120,
-            position: "relative",
-          }}
+          style={{ position: "relative" }}
         >
-          <span style={{ fontSize: 44, lineHeight: 1 }}>{item.emoji}</span>
+          <div className="library-card-placeholder" style={{ display: "flex" }}>
+            <span className="placeholder-label">{item.name}</span>
+          </div>
 
           {/* Status badge */}
           <span
@@ -359,93 +351,33 @@ export default function BursaPage() {
 
   return (
     <div style={{ padding: "0 0 60px" }}>
-      {/* ── Banner Hero ─────────────────────────────────────────────────
-          Rounded bottom only — sits flush against topbar, no top clip   */}
-      <div
-        style={{
-          background:
-            "linear-gradient(135deg, #1a1208 0%, #2e1f06 60%, #3d2a08 100%)",
-          borderRadius: "0 0 14px 14px",
-          padding: "52px 48px 44px",
-          marginBottom: 36,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Ambient amber glow */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "radial-gradient(ellipse 60% 70% at 80% 50%, rgba(246,166,30,.12) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Eyebrow — small, NOT uppercase */}
-        <p
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "#f6a61e",
-            margin: "0 0 10px",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          BursaVerse
-        </p>
-
-        <h1
-          style={{
-            fontSize: 36,
-            fontWeight: 800,
-            color: "#fffdf8",
-            margin: "0 0 12px",
-            letterSpacing: "-0.04em",
-            lineHeight: 1.1,
-            maxWidth: 560,
-          }}
-        >
-          Micro-SaaS Marketplace
-        </h1>
-
-        <p
-          style={{
-            fontSize: 16,
-            color: "#c9b99a",
-            margin: "0 0 24px",
-            lineHeight: 1.5,
-            maxWidth: 520,
-          }}
-        >
-          Listing terkurasi dengan data MRR, revenue, dan umur domain. Cocok
-          untuk founder yang ingin scale lebih cepat lewat akuisisi produk jadi.
-        </p>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            className="cta-button"
-            style={{ fontSize: 14, height: 38 }}
-          >
-            Jelajahi Listing
-          </button>
-          <button
-            type="button"
-            className="ghost-button"
-            style={{
-              fontSize: 14,
-              height: 38,
-              color: "#fffdf8",
-              borderColor: "rgba(255,255,255,.2)",
-              background: "rgba(255,255,255,.08)",
-            }}
-          >
-            Jual SaaS Anda
-          </button>
+      <section className="perks-hero-panel" style={{ marginBottom: "36px" }}>
+        <div className="perks-hero-copy">
+          <span className="perks-hero-eyebrow">BursaVerse</span>
+          <h2>Micro-SaaS Marketplace</h2>
+          <p>
+            Listing terkurasi dengan data MRR, revenue, dan umur domain. Cocok
+            untuk founder yang ingin scale lebih cepat lewat akuisisi produk
+            jadi.
+          </p>
+          <div className="hero-actions" style={{ marginTop: 20 }}>
+            <button
+              type="button"
+              className="cta-button"
+              style={{ fontSize: 14, height: 38 }}
+            >
+              Jelajahi Listing
+            </button>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 14, height: 38 }}
+            >
+              Jual SaaS Anda
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Main layout: sidebar + cards ──────────────────────────────── */}
       <div

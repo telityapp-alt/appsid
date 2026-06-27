@@ -6,9 +6,10 @@ const PATUNGAN_LIST = [
   {
     id: 1,
     name: "Cursor Pro — 1 Bulan",
-    tagline: "Editor AI terbaik untuk vibe coding, autocomplete kontekstual + multi-file edit.",
+    tagline:
+      "Editor AI terbaik untuk vibe coding, autocomplete kontekstual + multi-file edit.",
     category: "AI Coding",
-    emoji: "⌨️",
+
     target: 20,
     joined: 13,
     pricePerPerson: 45000,
@@ -20,9 +21,10 @@ const PATUNGAN_LIST = [
   {
     id: 2,
     name: "Windsurf Team Plan",
-    tagline: "Cascade multi-file agent, unlimited completions, cocok buat solo founder.",
+    tagline:
+      "Cascade multi-file agent, unlimited completions, cocok buat solo founder.",
     category: "AI Coding",
-    emoji: "🌊",
+
     target: 10,
     joined: 3,
     pricePerPerson: 60000,
@@ -34,9 +36,10 @@ const PATUNGAN_LIST = [
   {
     id: 3,
     name: "Perplexity Pro — 3 Bulan",
-    tagline: "Search AI dengan sitasi real-time, cocok untuk riset pasar dan competitor analysis.",
+    tagline:
+      "Search AI dengan sitasi real-time, cocok untuk riset pasar dan competitor analysis.",
     category: "Research",
-    emoji: "🔍",
+
     target: 15,
     joined: 15,
     pricePerPerson: 35000,
@@ -48,9 +51,10 @@ const PATUNGAN_LIST = [
   {
     id: 4,
     name: "Linear — Team Plan",
-    tagline: "Issue tracker terbaik untuk indie hacker dan tim kecil. Fast, keyboard-first.",
+    tagline:
+      "Issue tracker terbaik untuk indie hacker dan tim kecil. Fast, keyboard-first.",
     category: "Produktivitas",
-    emoji: "📋",
+
     target: 8,
     joined: 2,
     pricePerPerson: 75000,
@@ -62,9 +66,10 @@ const PATUNGAN_LIST = [
   {
     id: 5,
     name: "Figma Professional",
-    tagline: "Design tool full fitur: unlimited projects, version history, dan dev mode.",
+    tagline:
+      "Design tool full fitur: unlimited projects, version history, dan dev mode.",
     category: "Design",
-    emoji: "🎨",
+
     target: 12,
     joined: 9,
     pricePerPerson: 55000,
@@ -76,9 +81,10 @@ const PATUNGAN_LIST = [
   {
     id: 6,
     name: "Notion AI — Team",
-    tagline: "Workspace + AI writer untuk dokumentasi produk, roadmap, dan knowledge base tim.",
+    tagline:
+      "Workspace + AI writer untuk dokumentasi produk, roadmap, dan knowledge base tim.",
     category: "Produktivitas",
-    emoji: "📝",
+
     target: 10,
     joined: 10,
     pricePerPerson: 40000,
@@ -89,12 +95,19 @@ const PATUNGAN_LIST = [
   },
 ];
 
-const CATEGORIES = ["Semua", "AI Coding", "Research", "Produktivitas", "Design"];
+const CATEGORIES = [
+  "Semua",
+  "AI Coding",
+  "Research",
+  "Produktivitas",
+  "Design",
+];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 function formatIDR(n) {
-  if (n >= 1_000_000) return `Rp ${(n / 1_000_000).toFixed(1).replace(".0", "")} jt`;
+  if (n >= 1_000_000)
+    return `Rp ${(n / 1_000_000).toFixed(1).replace(".0", "")} jt`;
   if (n >= 1_000) return `Rp ${(n / 1_000).toFixed(0)}rb`;
   return `Rp ${n.toLocaleString("id-ID")}`;
 }
@@ -106,35 +119,47 @@ function ProgressMeter({ joined, target }) {
   const isFull = joined >= target;
 
   // Color based on fill
-  const barColor = isFull
-    ? "#1a6b48"
-    : pct >= 70
-    ? "#c7820e"
-    : "#f6a61e";
+  const barColor = isFull ? "#1a6b48" : pct >= 70 ? "#c7820e" : "#f6a61e";
   const trackColor = isFull ? "#edfaf4" : "#f5f2ec";
 
   return (
     <div style={{ marginBottom: 8 }}>
       {/* Track */}
-      <div style={{
-        height: 8,
-        borderRadius: 999,
-        background: trackColor,
-        border: "1px solid #d9d1c2",
-        overflow: "hidden",
-        marginBottom: 5,
-      }}>
-        <div style={{
-          height: "100%",
-          width: `${pct}%`,
+      <div
+        style={{
+          height: 8,
           borderRadius: 999,
-          background: barColor,
-          transition: "width 600ms cubic-bezier(.22,1,.36,1)",
-        }} />
+          background: trackColor,
+          border: "1px solid #d9d1c2",
+          overflow: "hidden",
+          marginBottom: 5,
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${pct}%`,
+            borderRadius: 999,
+            background: barColor,
+            transition: "width 600ms cubic-bezier(.22,1,.36,1)",
+          }}
+        />
       </div>
       {/* Label row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: isFull ? "#1a6b48" : "#0d1d38" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: isFull ? "#1a6b48" : "#0d1d38",
+          }}
+        >
           {joined} / {target} orang
         </span>
         <span style={{ fontSize: 11, fontWeight: 600, color: "#7b8594" }}>
@@ -154,7 +179,14 @@ function ParticipantDots({ joined, target }) {
   const initials = ["A", "R", "D", "S", "M", "F"];
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        marginBottom: 10,
+      }}
+    >
       <div style={{ display: "flex" }}>
         {Array.from({ length: shown }).map((_, i) => (
           <div
@@ -180,27 +212,36 @@ function ParticipantDots({ joined, target }) {
           </div>
         ))}
         {remaining > 0 && (
-          <div style={{
-            width: 24,
-            height: 24,
-            borderRadius: "50%",
-            background: "#f5f2ec",
-            border: "2px solid #fffdf8",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 9,
-            fontWeight: 800,
-            color: "#55606d",
-            marginLeft: -6,
-            position: "relative",
-            zIndex: 0,
-          }}>
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              background: "#f5f2ec",
+              border: "2px solid #fffdf8",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 9,
+              fontWeight: 800,
+              color: "#55606d",
+              marginLeft: -6,
+              position: "relative",
+              zIndex: 0,
+            }}
+          >
             +{remaining}
           </div>
         )}
       </div>
-      <span style={{ fontSize: 11, color: "#7b8594", fontWeight: 600, marginLeft: 4 }}>
+      <span
+        style={{
+          fontSize: 11,
+          color: "#7b8594",
+          fontWeight: 600,
+          marginLeft: 4,
+        }}
+      >
         sudah bergabung
       </span>
     </div>
@@ -216,22 +257,21 @@ function PatunganCard({ item }) {
   return (
     <article
       className="library-card"
-      style={{ display: "flex", flexDirection: "column", opacity: isFull ? 0.8 : 1 }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        opacity: isFull ? 0.8 : 1,
+      }}
     >
       {/* Hero */}
       <div className="library-card-hero">
         <div
           className="library-card-screenshot-wrap"
-          style={{
-            background: "linear-gradient(135deg, #f5f2ec 0%, #ede8de 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: 120,
-            position: "relative",
-          }}
+          style={{ position: "relative" }}
         >
-          <span style={{ fontSize: 44, lineHeight: 1 }}>{item.emoji}</span>
+          <div className="library-card-placeholder" style={{ display: "flex" }}>
+            <span className="placeholder-label">{item.name}</span>
+          </div>
 
           {/* Status badge */}
           {item.badge && (
@@ -243,9 +283,21 @@ function PatunganCard({ item }) {
                 left: 10,
                 fontSize: 11,
                 padding: "2px 8px",
-                background: isFull ? "#edfaf4" : item.badge === "Baru" ? "#f0f4ff" : "#fff8ec",
-                border: isFull ? "1px solid #a3e4c6" : item.badge === "Baru" ? "1px solid #b8c9f5" : "1px solid #f5d68a",
-                color: isFull ? "#1a6b48" : item.badge === "Baru" ? "#2d4fa0" : "#8a5c00",
+                background: isFull
+                  ? "#edfaf4"
+                  : item.badge === "Baru"
+                    ? "#f0f4ff"
+                    : "#fff8ec",
+                border: isFull
+                  ? "1px solid #a3e4c6"
+                  : item.badge === "Baru"
+                    ? "1px solid #b8c9f5"
+                    : "1px solid #f5d68a",
+                color: isFull
+                  ? "#1a6b48"
+                  : item.badge === "Baru"
+                    ? "#2d4fa0"
+                    : "#8a5c00",
               }}
             >
               {item.badge}
@@ -279,19 +331,26 @@ function PatunganCard({ item }) {
       {/* Body */}
       <div
         className="library-card-meta"
-        style={{ padding: "10px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}
+        style={{
+          padding: "10px 12px 12px",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        }}
       >
         {/* Desc */}
-        <p style={{
-          fontSize: 12,
-          color: "#55606d",
-          margin: "0 0 10px",
-          lineHeight: 1.5,
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}>
+        <p
+          style={{
+            fontSize: 12,
+            color: "#55606d",
+            margin: "0 0 10px",
+            lineHeight: 1.5,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
           {item.tagline}
         </p>
 
@@ -302,19 +361,30 @@ function PatunganCard({ item }) {
         <ProgressMeter joined={item.joined} target={item.target} />
 
         {/* Price row */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "8px 0",
-          borderTop: "1px solid #f0ebe2",
-          marginBottom: 10,
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "8px 0",
+            borderTop: "1px solid #f0ebe2",
+            marginBottom: 10,
+          }}
+        >
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0d1d38", letterSpacing: "-0.03em" }}>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#0d1d38",
+                letterSpacing: "-0.03em",
+              }}
+            >
               {formatIDR(item.pricePerPerson)}
             </div>
-            <div style={{ fontSize: 11, color: "#7b8594", fontWeight: 600 }}>per orang</div>
+            <div style={{ fontSize: 11, color: "#7b8594", fontWeight: 600 }}>
+              per orang
+            </div>
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}>
@@ -361,7 +431,8 @@ export default function PatunganPage() {
   const [showFull, setShowFull] = useState(false);
 
   const filtered = PATUNGAN_LIST.filter((item) => {
-    const matchCat = activeCategory === "Semua" || item.category === activeCategory;
+    const matchCat =
+      activeCategory === "Semua" || item.category === activeCategory;
     const matchFull = showFull || item.status !== "full";
     return matchCat && matchFull;
   });
@@ -371,69 +442,57 @@ export default function PatunganPage() {
 
   return (
     <div style={{ padding: "0 0 60px" }}>
-
       {/* ── Banner ──────────────────────────────────────────────────── */}
-      <div style={{
-        background: "linear-gradient(135deg, #1a1208 0%, #2e1f06 60%, #3d2a08 100%)",
-        borderRadius: "0 0 14px 14px",
-        padding: "52px 48px 44px",
-        marginBottom: 28,
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(ellipse 55% 75% at 85% 50%, rgba(246,166,30,.12) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }} />
-
-        <p style={{ fontSize: 13, fontWeight: 700, color: "#f6a61e", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
-          Patungan
-        </p>
-        <h1 style={{
-          fontSize: 36,
-          fontWeight: 800,
-          color: "#fffdf8",
-          margin: "0 0 12px",
-          letterSpacing: "-0.04em",
-          lineHeight: 1.1,
-          maxWidth: 520,
-        }}>
-          Patungan tools bareng komunitas
-        </h1>
-        <p style={{
-          fontSize: 16,
-          color: "#c9b99a",
-          margin: "0 0 24px",
-          lineHeight: 1.5,
-          maxWidth: 480,
-        }}>
-          Bayar lebih murah untuk tools premium dengan sistem patungan. Gabung dengan builder Indonesia lainnya dan hemat sampai 80%.
-        </p>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button type="button" className="cta-button" style={{ fontSize: 14, height: 38 }}>
-            Usulkan tools
-          </button>
-          <button type="button" className="ghost-button" style={{
-            fontSize: 14,
-            height: 38,
-            color: "#fffdf8",
-            borderColor: "rgba(255,255,255,.2)",
-            background: "rgba(255,255,255,.08)",
-          }}>
-            Cara kerja
-          </button>
+      <section className="perks-hero-panel" style={{ marginBottom: "28px" }}>
+        <div className="perks-hero-copy">
+          <span className="perks-hero-eyebrow">Patungan</span>
+          <h2>Patungan tools bareng komunitas</h2>
+          <p>
+            Bayar lebih murah untuk tools premium dengan sistem patungan. Gabung
+            dengan builder Indonesia lainnya dan hemat sampai 80%.
+          </p>
+          <div className="hero-actions" style={{ marginTop: 20 }}>
+            <button
+              type="button"
+              className="cta-button"
+              style={{ fontSize: 14, height: 38 }}
+            >
+              Usulkan tools
+            </button>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 14, height: 38 }}
+            >
+              Cara kerja
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Main ────────────────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 28, padding: "0 24px" }}>
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "220px 1fr",
+          gap: 28,
+          padding: "0 24px",
+        }}
+      >
         {/* Sidebar */}
-        <aside className="apps-left-sidebar" style={{ alignSelf: "start", position: "sticky", top: 20 }}>
-
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#55606d", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+        <aside
+          className="apps-left-sidebar"
+          style={{ alignSelf: "start", position: "sticky", top: 20 }}
+        >
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#55606d",
+              margin: "0 0 8px",
+              letterSpacing: "-0.01em",
+            }}
+          >
             Kategori
           </p>
           <div className="tags-list" style={{ marginBottom: 20 }}>
@@ -449,7 +508,15 @@ export default function PatunganPage() {
             ))}
           </div>
 
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#55606d", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#55606d",
+              margin: "0 0 8px",
+              letterSpacing: "-0.01em",
+            }}
+          >
             Status
           </p>
           <div className="tags-list" style={{ marginBottom: 20 }}>
@@ -470,59 +537,107 @@ export default function PatunganPage() {
           </div>
 
           {/* Stats card */}
-          <div style={{
-            padding: "12px 14px",
-            border: "1px solid #d9d1c2",
-            borderBottomWidth: 2,
-            borderRadius: 10,
-            background: "#fffdf8",
-            boxShadow: "inset 0 -2px 0 rgba(21,19,16,.07)",
-          }}>
-            <p style={{ fontSize: 12, fontWeight: 800, color: "#0d1d38", margin: "0 0 8px" }}>Ringkasan</p>
+          <div
+            style={{
+              padding: "12px 14px",
+              border: "1px solid #d9d1c2",
+              borderBottomWidth: 2,
+              borderRadius: 10,
+              background: "#fffdf8",
+              boxShadow: "inset 0 -2px 0 rgba(21,19,16,.07)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#0d1d38",
+                margin: "0 0 8px",
+              }}
+            >
+              Ringkasan
+            </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}>Buka</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#0d1d38" }}>{openCount}</span>
+                <span
+                  style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}
+                >
+                  Buka
+                </span>
+                <span
+                  style={{ fontSize: 13, fontWeight: 800, color: "#0d1d38" }}
+                >
+                  {openCount}
+                </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}>Penuh</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#1a6b48" }}>{fullCount}</span>
+                <span
+                  style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}
+                >
+                  Penuh
+                </span>
+                <span
+                  style={{ fontSize: 13, fontWeight: 800, color: "#1a6b48" }}
+                >
+                  {fullCount}
+                </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}>Total tools</span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#0d1d38" }}>{PATUNGAN_LIST.length}</span>
+                <span
+                  style={{ fontSize: 12, color: "#55606d", fontWeight: 600 }}
+                >
+                  Total tools
+                </span>
+                <span
+                  style={{ fontSize: 13, fontWeight: 800, color: "#0d1d38" }}
+                >
+                  {PATUNGAN_LIST.length}
+                </span>
               </div>
             </div>
           </div>
-
         </aside>
 
         {/* Grid */}
         <main>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, fontSize: 13, color: "#55606d" }}>
-            <strong style={{ color: "#0d1d38" }}>{filtered.length}</strong> patungan tersedia
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 16,
+              fontSize: 13,
+              color: "#55606d",
+            }}
+          >
+            <strong style={{ color: "#0d1d38" }}>{filtered.length}</strong>{" "}
+            patungan tersedia
             <span className="hero-dot" />
             <span>{openCount} masih buka</span>
           </div>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 20,
-          }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              gap: 20,
+            }}
+          >
             {filtered.length > 0 ? (
               filtered.map((item) => <PatunganCard key={item.id} item={item} />)
             ) : (
-              <div style={{
-                gridColumn: "1 / -1",
-                padding: "48px 24px",
-                textAlign: "center",
-                color: "#7b8594",
-                fontSize: 14,
-                border: "1px solid #d9d1c2",
-                borderRadius: 10,
-                background: "#fffdf8",
-              }}>
+              <div
+                style={{
+                  gridColumn: "1 / -1",
+                  padding: "48px 24px",
+                  textAlign: "center",
+                  color: "#7b8594",
+                  fontSize: 14,
+                  border: "1px solid #d9d1c2",
+                  borderRadius: 10,
+                  background: "#fffdf8",
+                }}
+              >
                 Tidak ada patungan yang sesuai filter.
               </div>
             )}
