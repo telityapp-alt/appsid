@@ -369,23 +369,21 @@ function SparkIcon() {
   );
 }
 
-export default function PerksPage() {
-  function PerksPage() {
-    const [activeCategory, setActiveCategory] = useState("All");
-    const [activeArticle, setActiveArticle] = useState(null);
-    const navigate = useNavigate();
+function PerksPage() {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeArticle, setActiveArticle] = useState(null);
 
-    // Collect all unique tags from benefitCards as categories
-    const categories = React.useMemo(() => {
-      const tagSet = new Set(["All"]);
-      benefitCards.forEach((card) => card.tags?.forEach((t) => tagSet.add(t)));
-      return Array.from(tagSet);
-    }, []);
+  // Collect all unique tags from benefitCards as categories
+  const categories = React.useMemo(() => {
+    const tagSet = new Set(["All"]);
+    benefitCards.forEach((card) => card.tags?.forEach((t) => tagSet.add(t)));
+    return Array.from(tagSet);
+  }, []);
 
-    const filteredCards = React.useMemo(() => {
-      if (activeCategory === "All") return benefitCards;
-      return benefitCards.filter((card) => card.tags?.includes(activeCategory));
-    }, [activeCategory]);
+  const filteredCards = React.useMemo(() => {
+    if (activeCategory === "All") return benefitCards;
+    return benefitCards.filter((card) => card.tags?.includes(activeCategory));
+  }, [activeCategory]);
 
   return (
     <section className="perks-page" aria-labelledby="perks-page-title">
@@ -440,10 +438,37 @@ export default function PerksPage() {
             ))}
           </div>
 
-          <div className="apps-list-header">
-            <span className="library-kicker">Gratisan</span>
-            <h2>Partner perks dan launch support</h2>
-          </div>
+          <section className="perks-hero-panel">
+            <div className="perks-hero-copy">
+              <span className="perks-hero-eyebrow">Startups program</span>
+              <h2>
+                Partner perks dan launch support untuk tim kecil yang pengen
+                ship seperti tim besar
+              </h2>
+              <p>
+                Formatnya terinspirasi dari editorial launch board, tapi seluruh
+                visualnya tetap pakai bahasa Builders: hangat, retro-clean,
+                tegas di border, dan playful di aksen.
+              </p>
+              <div className="panel-chips" aria-label="Program benefits">
+                <span className="panel-chip">Product credits</span>
+                <span className="panel-chip">Partner offers</span>
+                <span className="panel-chip">Founder support</span>
+                <span className="panel-chip">Launch tooling</span>
+              </div>
+              <div
+                className="trust-strip perks-trust-strip"
+                aria-label="Included perks"
+              >
+                <span className="trust-label">Included:</span>
+                <div className="trust-logos">
+                  <span>$50k credits</span>
+                  <span>$12k partner perks</span>
+                  <span>$1.5k merch</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
           <section className="perks-benefit-grid" aria-label="Program perks">
             {filteredCards.map((card) => (
@@ -508,3 +533,5 @@ export default function PerksPage() {
     </section>
   );
 }
+
+export default PerksPage;
