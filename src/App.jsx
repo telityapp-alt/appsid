@@ -730,22 +730,7 @@ function HomePage() {
                       type="button"
                       className="cta-button hero-marquee-btn"
                     >
-                      <img
-                        src={item.img}
-                        alt=""
-                        style={{
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "6px",
-                          marginRight: "10px",
-                          objectFit: "cover",
-                          border: "1px solid rgba(0,0,0,0.1)",
-                        }}
-                      />
-                      <span style={{ fontWeight: 500, marginRight: "6px" }}>
-                        Propose to
-                      </span>{" "}
-                      {item.brand}
+                      Propose to {item.brand}
                     </button>
                   </div>
                 ))}
@@ -893,7 +878,6 @@ function HomePage() {
           ))}
         </div>
       </section>
-
 
       {/* Popover rendered on /portfolio/:slug route, overlaid on home */}
       <Outlet />
