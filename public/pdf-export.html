@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SafuBot Proposal - PDF Export</title>
+  <style>
+    body { margin: 0; padding: 0; }
+    iframe { 
+      width: 100vw; 
+      height: 100vh; 
+      border: none;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="content" src="/for-safubot"></iframe>
+  <script>
+    // Auto trigger print setelah load
+    document.getElementById('content').onload = function() {
+      setTimeout(() => {
+        window.print();
+      }, 2000);
+    };
+  </script>
+</body>
+</html>
