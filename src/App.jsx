@@ -884,6 +884,865 @@ function HomePage() {
         </div>
       </section>
 
+      {/* ── Marketplace Preview ─────────────────────────────────────── */}
+      <section
+        style={{
+          marginTop: 48,
+          paddingBottom: 48,
+          borderTop: "1px solid #d9d1c2",
+        }}
+      >
+        <div className="library-copy" style={{ marginTop: 32 }}>
+          <div>
+            <span className="library-kicker">Marketplace</span>
+            <h2
+              style={{
+                fontSize: 26,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                color: "#0d1d38",
+                margin: "6px 0 8px",
+              }}
+            >
+              Akun digital siap pakai
+            </h2>
+            <p style={{ fontSize: 15, color: "#55606d", margin: 0 }}>
+              API key, VPS, akun AI coding — langsung checkout tanpa setup
+              ribet.
+            </p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 13, height: 34 }}
+              onClick={() => navigate("/marketplace")}
+            >
+              Lihat semua
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: 20,
+            marginTop: 24,
+          }}
+        >
+          {[
+            {
+              name: "MiMo Api Key 30 USD",
+              category: "MiMo",
+              desc: "API key resmi Xiaomi MiMo fresh, semua model termasuk MiMo 2.5 Pro.",
+              price: 20000,
+              sold: 594,
+            },
+            {
+              name: "Windsurf / DevinAI",
+              category: "Windsurf / DevinAI",
+              desc: "Akun Windsurf siap dipakai, kuota full untuk agentic coding harian.",
+              price: 27000,
+              sold: 431,
+            },
+            {
+              name: "GitHub Student Pack",
+              category: "Github Developer Pack",
+              desc: "Akun GitHub Student benefit lengkap, berlaku sampai 2 tahun ke depan.",
+              price: 23800,
+              sold: 298,
+            },
+            {
+              name: "ChatGPT Plus 1 Bulan",
+              category: "ChatGPT",
+              desc: "Akun ChatGPT Plus fresh, cocok untuk agentic coding via 9router.",
+              price: 6300,
+              sold: 448,
+            },
+          ].map((item) => (
+            <article
+              key={item.name}
+              className="library-card"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                cursor: "pointer",
+              }}
+              onClick={() => navigate("/marketplace")}
+            >
+              <div className="library-card-hero">
+                <div
+                  className="library-card-screenshot-wrap"
+                  style={{
+                    background: "#f0ede6",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div className="library-card-placeholder" aria-hidden="true">
+                    <span className="placeholder-label">{item.name}</span>
+                  </div>
+                </div>
+                <span
+                  className="library-card-chip"
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    fontSize: 11,
+                    padding: "2px 8px",
+                  }}
+                >
+                  {item.category}
+                </span>
+              </div>
+              <div className="library-card-ribbon">
+                <strong>{item.name}</strong>
+                <span>{item.category}</span>
+              </div>
+              <div
+                className="library-card-meta"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: 1,
+                  padding: "10px 12px 12px",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#55606d",
+                    margin: "0 0 8px",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.desc}
+                </p>
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#0d1d38",
+                    margin: "0 0 4px",
+                  }}
+                >
+                  Rp {item.price.toLocaleString("id-ID")}
+                </p>
+                <p
+                  style={{ fontSize: 11, color: "#7b8594", margin: "0 0 10px" }}
+                >
+                  Terjual {item.sold}x
+                </p>
+                <div style={{ marginTop: "auto" }}>
+                  <button
+                    type="button"
+                    className="cta-button"
+                    style={{ width: "100%", fontSize: 13, height: 34 }}
+                  >
+                    Beli sekarang
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Forum Highlights ─────────────────────────────────────────────── */}
+      <section
+        style={{
+          marginTop: 48,
+          paddingBottom: 48,
+          borderTop: "1px solid #d9d1c2",
+        }}
+      >
+        <div className="library-copy" style={{ marginTop: 32 }}>
+          <div>
+            <span className="library-kicker">Forum</span>
+            <h2
+              style={{
+                fontSize: 26,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                color: "#0d1d38",
+                margin: "6px 0 8px",
+              }}
+            >
+              Diskusi dari komunitas builder
+            </h2>
+            <p style={{ fontSize: 15, color: "#55606d", margin: 0 }}>
+              Thread terbaru dari founder, developer, dan indie hacker
+              Indonesia.
+            </p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 13, height: 34 }}
+              onClick={() => navigate("/forum")}
+            >
+              Lihat semua
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            marginTop: 24,
+          }}
+        >
+          {[
+            {
+              id: 1,
+              author: "nabilfatih",
+              authorInitial: "N",
+              timeAgo: "2 jam lalu",
+              category: "SaaS & Produk",
+              flair: "Show & Tell",
+              title:
+                "Gua launch SaaS pertama gua setelah 3 bulan vibe coding — ini hasilnya",
+              upvotes: 142,
+              comments: 38,
+            },
+            {
+              id: 2,
+              author: "rizkydev",
+              authorInitial: "R",
+              timeAgo: "5 jam lalu",
+              category: "AI & Tools",
+              flair: "Diskusi",
+              title:
+                "Mana yang lebih worth untuk solo founder: Windsurf atau Cursor?",
+              upvotes: 89,
+              comments: 61,
+            },
+            {
+              id: 3,
+              author: "sarahfound",
+              authorInitial: "S",
+              timeAgo: "8 jam lalu",
+              category: "Marketing",
+              flair: "Tips",
+              title:
+                "Cold email ke 500 UMKM, 11 closing — ini template yang works",
+              upvotes: 203,
+              comments: 44,
+            },
+          ].map((post) => (
+            <div
+              key={post.id}
+              onClick={() => navigate("/forum")}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 16,
+                padding: "16px",
+                border: "1px solid #d9d1c2",
+                borderBottomWidth: 2,
+                borderRadius: 10,
+                background: "#fffdf8",
+                cursor: "pointer",
+                boxShadow:
+                  "inset 0 -3px 0 rgba(21,19,16,.09), 0 1px 3px rgba(21,19,16,.07)",
+                transition: "transform 260ms cubic-bezier(.22,1,.36,1)",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "translateY(2px)")
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "")}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  minWidth: 40,
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    background: "#f0ede6",
+                    border: "1px solid #d9d1c2",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: "#0d1d38",
+                  }}
+                >
+                  {post.authorInitial}
+                </div>
+                <span
+                  style={{ fontSize: 12, fontWeight: 700, color: "#0d1d38" }}
+                >
+                  {post.upvotes}
+                </span>
+                <span style={{ fontSize: 10, color: "#7b8594" }}>votes</span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 6,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "#f6a61e",
+                      background: "rgba(246,166,30,.12)",
+                      border: "1px solid rgba(246,166,30,.3)",
+                      borderRadius: 4,
+                      padding: "2px 7px",
+                    }}
+                  >
+                    {post.flair}
+                  </span>
+                  <span
+                    style={{ fontSize: 11, fontWeight: 600, color: "#7b8594" }}
+                  >
+                    {post.category}
+                  </span>
+                  <span style={{ fontSize: 11, color: "#7b8594" }}>
+                    {post.timeAgo}
+                  </span>
+                </div>
+                <p
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: "#0d1d38",
+                    margin: "0 0 6px",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {post.title}
+                </p>
+                <span style={{ fontSize: 12, color: "#7b8594" }}>
+                  {post.comments} komentar · oleh {post.author}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Patungan Teaser ──────────────────────────────────────────────── */}
+      <section
+        style={{
+          marginTop: 48,
+          paddingBottom: 48,
+          borderTop: "1px solid #d9d1c2",
+        }}
+      >
+        <div className="library-copy" style={{ marginTop: 32 }}>
+          <div>
+            <span className="library-kicker">Patungan</span>
+            <h2
+              style={{
+                fontSize: 26,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                color: "#0d1d38",
+                margin: "6px 0 8px",
+              }}
+            >
+              Tools premium, harga patungan
+            </h2>
+            <p style={{ fontSize: 15, color: "#55606d", margin: 0 }}>
+              Gabung bareng builder lain, bayar sebagian, nikmatin tools kelas
+              satu.
+            </p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 13, height: 34 }}
+              onClick={() => navigate("/patungan")}
+            >
+              Ikut patungan
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 20,
+            marginTop: 24,
+          }}
+        >
+          {[
+            {
+              id: 1,
+              name: "Cursor Pro — 1 Bulan",
+              category: "AI Coding",
+              tagline:
+                "Editor AI terbaik untuk vibe coding, autocomplete kontekstual + multi-file edit.",
+              target: 20,
+              joined: 13,
+              pricePerPerson: 45000,
+              deadline: "5 hari lagi",
+              badge: "Hampir penuh",
+              status: "open",
+            },
+            {
+              id: 2,
+              name: "Windsurf Team Plan",
+              category: "AI Coding",
+              tagline:
+                "Cascade multi-file agent, unlimited completions, cocok buat solo founder.",
+              target: 10,
+              joined: 3,
+              pricePerPerson: 60000,
+              deadline: "10 hari lagi",
+              badge: null,
+              status: "open",
+            },
+            {
+              id: 4,
+              name: "Linear — Team Plan",
+              category: "Produktivitas",
+              tagline:
+                "Issue tracker terbaik untuk indie hacker dan tim kecil. Fast, keyboard-first.",
+              target: 8,
+              joined: 2,
+              pricePerPerson: 75000,
+              deadline: "14 hari lagi",
+              badge: "Baru",
+              status: "open",
+            },
+          ].map((item) => {
+            const pct = Math.round((item.joined / item.target) * 100);
+            return (
+              <article
+                key={item.id}
+                className="library-card"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  cursor: "pointer",
+                }}
+                onClick={() => navigate("/patungan")}
+              >
+                <div className="library-card-hero">
+                  <div
+                    className="library-card-screenshot-wrap"
+                    style={{
+                      background: "#f0ede6",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      className="library-card-placeholder"
+                      aria-hidden="true"
+                    >
+                      <span className="placeholder-label">{item.name}</span>
+                    </div>
+                  </div>
+                  {item.badge && (
+                    <span
+                      className="library-card-chip"
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        fontSize: 11,
+                        padding: "2px 8px",
+                      }}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <div className="library-card-ribbon">
+                  <strong>{item.name}</strong>
+                  <span>{item.category}</span>
+                </div>
+                <div
+                  className="library-card-meta"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    flex: 1,
+                    padding: "10px 12px 12px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: "#55606d",
+                      margin: "0 0 10px",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {item.tagline}
+                  </p>
+                  <div style={{ marginBottom: 8 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: 4,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "#55606d",
+                        }}
+                      >
+                        {item.joined} / {item.target} orang
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#f6a61e",
+                        }}
+                      >
+                        {pct}%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        height: 6,
+                        borderRadius: 999,
+                        background: "#ede8df",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          width: pct + "%",
+                          background: "#f6a61e",
+                          borderRadius: 999,
+                          transition: "width 400ms ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: "#0d1d38",
+                      margin: "0 0 2px",
+                    }}
+                  >
+                    Rp {item.pricePerPerson.toLocaleString("id-ID")} / orang
+                  </p>
+                  {item.deadline && (
+                    <p
+                      style={{
+                        fontSize: 11,
+                        color: "#7b8594",
+                        margin: "0 0 10px",
+                      }}
+                    >
+                      {item.deadline}
+                    </p>
+                  )}
+                  <div style={{ marginTop: "auto" }}>
+                    <button
+                      type="button"
+                      className="cta-button"
+                      style={{ width: "100%", fontSize: 13, height: 34 }}
+                    >
+                      Ikut sekarang
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Bursa Teaser ─────────────────────────────────────────────────── */}
+      <section
+        style={{
+          marginTop: 48,
+          paddingBottom: 60,
+          borderTop: "1px solid #d9d1c2",
+        }}
+      >
+        <div className="library-copy" style={{ marginTop: 32 }}>
+          <div>
+            <span className="library-kicker">Bursa</span>
+            <h2
+              style={{
+                fontSize: 26,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                color: "#0d1d38",
+                margin: "6px 0 8px",
+              }}
+            >
+              Akuisisi micro-SaaS Indonesia
+            </h2>
+            <p style={{ fontSize: 15, color: "#55606d", margin: 0 }}>
+              Listing terkurasi dengan data MRR, revenue, dan umur domain untuk
+              screening awal.
+            </p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 13, height: 34 }}
+              onClick={() => navigate("/bursa")}
+            >
+              Jelajahi listing
+            </button>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 20,
+            marginTop: 24,
+          }}
+        >
+          {[
+            {
+              id: 1,
+              name: "HubNesia",
+              tagline: "Semua Layanan Digital dalam Satu Platform",
+              category: "Tools",
+              status: "MVP",
+              statusColor: {
+                bg: "#f0f4ff",
+                border: "#b8c9f5",
+                color: "#2d4fa0",
+              },
+              price: 1200000,
+              domainAge: 4,
+              growth: null,
+            },
+            {
+              id: 2,
+              name: "Helipod",
+              tagline:
+                "Co-DevOps platform: deploy web apps, APIs & AI workloads in minutes.",
+              category: "Developer Tools",
+              status: "Aktif",
+              statusColor: {
+                bg: "#edfaf4",
+                border: "#a3e4c6",
+                color: "#1a6b48",
+              },
+              price: 300000000,
+              domainAge: 2,
+              growth: null,
+            },
+            {
+              id: 3,
+              name: "SanPoi Store",
+              tagline:
+                "Platform gaming commerce berbasis whitelabel dengan ribuan transaksi historis.",
+              category: "Gaming Commerce",
+              status: "Bertumbuh",
+              statusColor: {
+                bg: "#fff8ec",
+                border: "#f5d68a",
+                color: "#8a5c00",
+              },
+              price: 12000000,
+              domainAge: 12,
+              growth: "+10.0% MoM",
+            },
+          ].map((item) => (
+            <article
+              key={item.id}
+              className="library-card"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                cursor: "pointer",
+              }}
+              onClick={() => navigate("/bursa")}
+            >
+              <div className="library-card-hero">
+                <div
+                  className="library-card-screenshot-wrap"
+                  style={{
+                    background: "#f0ede6",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div className="library-card-placeholder" aria-hidden="true">
+                    <span className="placeholder-label">{item.name}</span>
+                  </div>
+                </div>
+                <span
+                  className="library-card-chip"
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    fontSize: 11,
+                    padding: "2px 8px",
+                    background: item.statusColor.bg,
+                    borderColor: item.statusColor.border,
+                    color: item.statusColor.color,
+                  }}
+                >
+                  {item.status}
+                </span>
+              </div>
+              <div className="library-card-ribbon">
+                <strong>{item.name}</strong>
+                <span>{item.category}</span>
+              </div>
+              <div
+                className="library-card-meta"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  flex: 1,
+                  padding: "10px 12px 12px",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#55606d",
+                    margin: "0 0 10px",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.tagline}
+                </p>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "4px 12px",
+                    marginBottom: 10,
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "#7b8594",
+                        margin: "0 0 1px",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Harga jual
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 800,
+                        color: "#0d1d38",
+                        margin: 0,
+                      }}
+                    >
+                      Rp {(item.price / 1000000).toFixed(1)}jt
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "#7b8594",
+                        margin: "0 0 1px",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Umur domain
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 800,
+                        color: "#0d1d38",
+                        margin: 0,
+                      }}
+                    >
+                      {item.domainAge} bulan
+                    </p>
+                  </div>
+                  {item.growth && (
+                    <div style={{ gridColumn: "span 2" }}>
+                      <p
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: "#7b8594",
+                          margin: "0 0 1px",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Pertumbuhan
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          color: "#1a6b48",
+                          margin: 0,
+                        }}
+                      >
+                        {item.growth}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: "auto" }}>
+                  <button
+                    type="button"
+                    className="cta-button"
+                    style={{ width: "100%", fontSize: 13, height: 34 }}
+                  >
+                    Lihat detail
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       {/* Popover rendered on /portfolio/:slug route, overlaid on home */}
       <Outlet />
 
