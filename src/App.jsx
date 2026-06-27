@@ -33,208 +33,208 @@ import ContactPopover from "./ContactPopover";
 const tabs = [
   {
     id: "usage",
-    label: "Psikologi Web App",
+    label: "Jelajahi Apps",
     accent: "#377cf6",
     image: "/tab-analytics.png",
-    title: "Website cerdas yang dirancang khusus memahami pola pengguna",
+    title: "Temukan apps dan tools terbaik buatan developer lokal",
     description:
-      "Dari visual ceria buat audiens anak hingga fitur lead magnet elegan untuk korporat. Setiap inci website dirancang pakai trik psikologi supaya pengunjung nyaman dan tergerak melakukan aksi.",
-    stat: "Retensi user 3x lebih tinggi dengan UX berbasis psikologi",
-    eyebrow: "Web Apps & Sites",
+      "Direktori produk digital Indonesia yang dikurasi. Dari AI tools produktivitas sampai SaaS B2B untuk UMKM. Semua bisa di-upvote, di-review, dan langsung dicoba.",
+    stat: "Ratusan produk lokal siap dieksplorasi dan didukung",
+    eyebrow: "Apps & Tools",
     primaryLinks: [
-      "User Flow Design",
-      "Conversion Funnel",
-      "Interactive Tools",
-      "Lead Magnets",
+      "AI Tools",
+      "Produktivitas",
+      "Developer Tools",
+      "Keuangan & Pajak",
     ],
     secondaryLinks: [
-      "Psychology-driven UX",
-      "Gamification elements",
-      "Micro-interactions",
-      "Trust signals",
+      "Submit produkmu",
+      "Upvote favorit",
+      "Filter by kategori",
+      "Trending minggu ini",
     ],
     bulletGroups: [
       {
-        heading: "Design",
+        heading: "Discover",
         items: [
-          "Visual hierarchy yang intuitif",
-          "Mobile-first responsive",
-          "Brand identity konsisten",
+          "Kurasi produk lokal terpercaya",
+          "Filter by kategori & stack",
+          "Preview screenshot langsung",
         ],
       },
       {
-        heading: "Psychology",
+        heading: "Support",
         items: [
-          "Trigger emotional response",
-          "Minimize friction points",
-          "Social proof placement",
+          "Upvote produk favorit",
+          "Bagikan ke komunitas",
+          "Review & feedback langsung",
         ],
       },
       {
-        heading: "Convert",
+        heading: "Submit",
         items: [
-          "Clear CTA strategy",
-          "Lead capture tools",
-          "Analytics integration",
+          "Daftarkan produkmu gratis",
+          "Reach builder Indonesia",
+          "Grow dengan ekosistem lokal",
         ],
       },
     ],
   },
   {
     id: "data",
-    label: "Konsultasi & ERP",
+    label: "Marketplace",
     accent: "#37d7c8",
     image: "/tab-onboarding.png",
-    title: "Integrasikan seluruh operasional ke dalam satu sistem ERP",
+    title: "Akun digital siap pakai untuk agentic coding dan AI workflow",
     description:
-      "Basic kita itu konsultan ERP. Kita paham ribetnya data terpisah. Makanya kita setup sistem Odoo yang menyatukan operasional, sales, dan HR dengan flow yang intuitif dan mudah dipahami tim Anda.",
-    stat: "Operational efficiency 40% meningkat dengan Odoo ERP",
-    eyebrow: "Odoo ERP Setup",
+      "Beli API key, VPS, akun AI coding, dan GitHub Student Pack dari seller terpercaya. Semua produk dikurasi, ada garansi, dan dikirim cepat tanpa ribet setup manual.",
+    stat: "Ribuan transaksi akun digital dari seller terverifikasi",
+    eyebrow: "Marketplace Digital",
     primaryLinks: [
-      "Sales Pipeline",
-      "Inventory",
-      "Accounting",
-      "HR Management",
+      "MiMo API Key",
+      "VPS Cloud",
+      "ChatGPT Plus",
+      "GitHub Student Pack",
     ],
     secondaryLinks: [
-      "Custom modules",
-      "Data migration",
-      "Training & support",
-      "Integration setup",
+      "Windsurf / DevinAI",
+      "OpenAgentic Token",
+      "Source Code",
+      "Lihat semua",
     ],
     bulletGroups: [
       {
-        heading: "Setup",
+        heading: "Beli",
         items: [
-          "Module configuration",
-          "Workflow customization",
-          "User roles & permissions",
+          "Checkout langsung tanpa daftar ribet",
+          "Stok realtime dari seller aktif",
+          "Harga transparan, garansi jelas",
         ],
       },
       {
-        heading: "Integrate",
+        heading: "Pakai",
         items: [
-          "Import existing data",
-          "Connect third-party apps",
-          "Automate reporting",
+          "Kompatibel dengan 9router & omnirouter",
+          "Tutorial pemasangan tersedia",
+          "Support dari seller langsung",
         ],
       },
       {
-        heading: "Scale",
+        heading: "Jual",
         items: [
-          "Team onboarding",
-          "Performance optimization",
-          "Ongoing consultation",
+          "Daftarkan produk digitalmu",
+          "Reach ribuan builder lokal",
+          "Kelola stok dan pesanan mudah",
         ],
       },
     ],
   },
   {
     id: "issues",
-    label: "Habit Mobile Apps",
+    label: "Forum",
     accent: "#f3ba3f",
     image: "/tab-debug.png",
-    title: "Aplikasi mobile dengan habit design untuk retensi maksimal",
+    title: "Komunitas builder Indonesia — diskusi, sharing, dan kolaborasi",
     description:
-      "Rahasia app bertahan lama ada di habit design. Kita bangun mobile apps pakai pendekatan psikologi user, menciptakan flow natural yang bikin mereka otomatis terus balik pakai aplikasi Anda.",
-    stat: "D30 retention 61% dengan habit design yang proven",
-    eyebrow: "Mobile Apps Dev",
+      "Forum untuk founder, developer, dan indie hacker lokal. Share progress, tanya strategi, cari co-founder, atau sekadar diskusi soal tools terbaru yang lagi hype.",
+    stat: "Thread aktif dari ratusan builder yang shipping setiap minggu",
+    eyebrow: "Komunitas Builder",
     primaryLinks: [
-      "Hook Model",
-      "Push Notifications",
-      "Gamification",
-      "Progress Tracking",
+      "Show & Tell",
+      "Diskusi SaaS",
+      "AI & Tools",
+      "Hire & Collab",
     ],
     secondaryLinks: [
-      "Onboarding flow",
-      "Reward system",
-      "Streak mechanics",
-      "Social features",
+      "Tips & Growth",
+      "Open Source",
+      "Fundraising",
+      "Lihat semua thread",
     ],
     bulletGroups: [
       {
-        heading: "Hook",
+        heading: "Share",
         items: [
-          "Trigger → action loop",
-          "Variable reward system",
-          "Investment mechanics",
+          "Post progress dan launch",
+          "Dapat feedback dari sesama builder",
+          "Upvote thread terbaik",
         ],
       },
       {
-        heading: "Engage",
+        heading: "Diskusi",
         items: [
-          "Daily active triggers",
-          "Progress visualization",
-          "Social accountability",
+          "Tanya strategi growth & monetisasi",
+          "Bahas tools dan stack terbaru",
+          "Thread terstruktur per kategori",
         ],
       },
       {
-        heading: "Retain",
+        heading: "Kolaborasi",
         items: [
-          "Streak protection",
-          "Re-engagement campaigns",
-          "Milestone celebrations",
+          "Cari co-founder atau partner",
+          "Post lowongan dan proyek",
+          "Networking ekosistem lokal",
         ],
       },
     ],
   },
   {
     id: "rollout",
-    label: "Strategi Growth",
+    label: "Patungan & Bursa",
     accent: "#b461f3",
     image: "/tab-rollout.png",
-    title: "Strategi growth berbasis data untuk eskalasi bisnis Anda",
+    title: "Patungan tools premium dan akuisisi micro-SaaS lokal",
     description:
-      "Sebagai konsultan growth, kerja kita berlanjut setelah rilis. Kita baca data, lakukan A/B test, dan optimasi fiturnya pakai trik psikologi supaya konversi bisnis Anda meledak pesat.",
-    stat: "2x faster growth dengan strategi berbasis data",
-    eyebrow: "Growth Consulting",
+      "Gabung patungan bareng builder lain untuk tools mahal seperti Cursor, Figma, dan Linear — bayar sebagian, pakai penuh. Atau jelajahi Bursa untuk beli dan jual produk SaaS Indonesia yang sudah jalan.",
+    stat: "Ribuan builder sudah hemat lewat patungan tools bersama",
+    eyebrow: "Patungan & Bursa",
     primaryLinks: [
-      "A/B Testing",
-      "Funnel Analysis",
-      "User Segmentation",
-      "KPI Tracking",
+      "Cursor Pro",
+      "Windsurf Team",
+      "Figma Professional",
+      "Linear Team Plan",
     ],
     secondaryLinks: [
-      "Conversion optimization",
-      "Content strategy",
-      "SEO & SEM",
-      "Analytics setup",
+      "Lihat semua patungan",
+      "Jual SaaS di Bursa",
+      "Listing terkurasi",
+      "Jelajahi akuisisi",
     ],
     bulletGroups: [
       {
-        heading: "Analyze",
+        heading: "Patungan",
         items: [
-          "User behavior tracking",
-          "Identify bottlenecks",
-          "Competitor benchmarking",
+          "Tools premium harga terjangkau",
+          "Progress meter realtime",
+          "Notifikasi kalau slot hampir penuh",
         ],
       },
       {
-        heading: "Optimize",
+        heading: "Bursa",
         items: [
-          "Run experiments",
-          "Iterate based on data",
-          "Conversion rate boost",
+          "Listing dengan data MRR & revenue",
+          "Umur domain transparan",
+          "Screening awal due diligence",
         ],
       },
       {
-        heading: "Scale",
+        heading: "Jual",
         items: [
-          "Automate winning tactics",
-          "Expand to new channels",
-          "Long-term growth roadmap",
+          "Submit SaaS ke Bursa",
+          "Reach buyer yang serius",
+          "Proses listing mudah dan cepat",
         ],
       },
     ],
   },
 ];
 
-const trustLogos = ["Ramp", "Retool", "Linear", "Vercel", "Cursor"];
+const trustLogos = ["Tokopedia", "Gojek", "Traveloka", "Bukalapak", "Kalibrr"];
 
 const heroHighlights = [
-  "Paham psikologi user luar dalam",
-  "DNA konsultan growth & pakar ERP",
-  "Nggak sekadar cantik, tapi narik cuan",
+  "Apps, tools, forum, dan marketplace dalam satu ekosistem",
+  "Kurated untuk developer, founder, dan builder Indonesia",
+  "Dari patungan tools sampai akuisisi micro-SaaS",
 ];
 
 export const realShowcaseItems = [
@@ -477,14 +477,14 @@ function HeaderLogo() {
         fontFamily: "monospace",
       }}
     >
-      Apphunt
+      AIverse
     </div>
   );
 }
 
 function Wordmark() {
   return (
-    <div className="wordmark" aria-label="Apphunt wordmark">
+    <div className="wordmark" aria-label="AIverse wordmark">
       <span
         className="wordmark-text"
         style={{
@@ -495,7 +495,7 @@ function Wordmark() {
           fontFamily: "inherit",
         }}
       >
-        Apphunt
+        AIverse
       </span>
     </div>
   );
@@ -632,16 +632,16 @@ function HomePage() {
       <section className="hero">
         <div className="hero-copy">
           <Wordmark />
-          <h1>Bangun apps & web pakai strategi growth dan psikologi user</h1>
+          <h1>Ekosistem digital Indonesia dalam satu tempat</h1>
           <p>
-            Berawal sebagai konsultan growth & ERP, kami racik web dan aplikasi
-            lewat lensa psikologi user. Dari visual asik untuk anak sampai lead
-            magnet solid untuk korporat, semua dipikirin matang.
+            AIverse adalah rumah bagi developer, indie hacker, dan founder
+            Indonesia. Temukan apps terbaik, ikut diskusi komunitas, patungan
+            tools premium, dan akuisisi micro-SaaS — semua di satu platform.
           </p>
           <p>
-            Kita nggak asal ngoding. Semua dirancang pakai ilmu psikologi biar
-            ngena di user, plus fondasi sistem growth & ERP yang pastinya bikin
-            performa bisnis melesat tajam.
+            Dari marketplace akun digital sampai bursa SaaS lokal, kami kurasi
+            ekosistem yang nyata dan relevan buat builder Indonesia yang mau
+            gerak cepat.
           </p>
 
           <ul className="hero-highlights" aria-label="Key benefits">
@@ -709,7 +709,7 @@ function HomePage() {
             className="trust-strip"
             aria-label="Trusted by teams shipping weekly"
           >
-            <span className="trust-label">Teams shipping weekly:</span>
+            <span className="trust-label">Dipakai builder dari:</span>
             <div className="trust-logos">
               {trustLogos.map((logo) => (
                 <span key={logo}>{logo}</span>
@@ -835,13 +835,15 @@ function HomePage() {
       <section className="library-section" aria-labelledby="library-title">
         <div className="library-copy">
           <div>
-            <span className="library-kicker">Library</span>
-            <h2 id="library-title">Galeri mahakarya portofolio agensi kami</h2>
+            <span className="library-kicker">Produk unggulan</span>
+            <h2 id="library-title">
+              Produk digital pilihan dari ekosistem AIverse
+            </h2>
           </div>
           <p>
-            Berbagai hasil mahakarya dari tim Apphunt. Dari desain ERP
-            interaktif sampai sistem operasi bisnis kompleks yang dirancang
-            mengutamakan kemudahan navigasi dan psikologi pengguna.
+            Beberapa produk terkurasi yang sudah live dan dipakai builder
+            Indonesia. Dari platform edtech sampai SaaS B2B untuk HR dan
+            operasional.
           </p>
         </div>
 
