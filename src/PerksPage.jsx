@@ -4,7 +4,7 @@ import PerksDetailPopover from "./PerksDetailPopover";
 const newsFaq = [
   {
     title: "What is this?",
-    body: "Builders for Startups membantu founder dan tim kecil merancang produk yang lebih matang sejak hari pertama, lengkap dengan kredit software, partner perks, dan support implementasi.",
+    body: "Apphunt for Startups membantu founder dan tim kecil merancang produk yang lebih matang sejak hari pertama, lengkap dengan kredit software, partner perks, dan support implementasi.",
     bullets: [
       "Untuk startup tahap awal",
       "Fokus product-led teams",
@@ -15,7 +15,7 @@ const newsFaq = [
     title: "How to apply",
     body: "Daftar akun, ceritakan produk yang sedang dibangun, lalu pilih area bantuan yang paling dibutuhkan supaya tim kami bisa menilai kecocokan program dengan cepat.",
     bullets: [
-      "Buat akun Builders",
+      "Buat akun Apphunt",
       "Isi startup profile",
       "Tunggu review via email",
     ],
@@ -70,7 +70,7 @@ const benefitCards = [
       {
         type: "quote",
         text: "Kredit ini bukan subsidi — ini akselerator. Tim yang pakai dengan benar bisa ship 3x lebih cepat di bulan pertama.",
-        attribution: "Tim Builders",
+        attribution: "Tim Apphunt",
       },
       {
         type: "h2",
@@ -182,7 +182,7 @@ const benefitCards = [
       {
         type: "quote",
         text: "Bukan soal kalau incident terjadi — tapi seberapa cepat kamu recover dan belajar dari itu.",
-        attribution: "Builders SRE Team",
+        attribution: "Apphunt SRE Team",
       },
       {
         type: "kv",
@@ -390,7 +390,7 @@ function PerksPage() {
       <div className="perks-header-row">
         <div>
           <span className="library-kicker">News</span>
-          <h1 id="perks-page-title">Builders for startups</h1>
+          <h1 id="perks-page-title">Apphunt for Startups</h1>
         </div>
         <div className="perks-header-actions">
           <button type="button" className="ghost-button">
@@ -447,7 +447,7 @@ function PerksPage() {
               </h2>
               <p>
                 Formatnya terinspirasi dari editorial launch board, tapi seluruh
-                visualnya tetap pakai bahasa Builders: hangat, retro-clean,
+                visualnya tetap pakai bahasa Apphunt: hangat, retro-clean,
                 tegas di border, dan playful di aksen.
               </p>
               <div className="panel-chips" aria-label="Program benefits">

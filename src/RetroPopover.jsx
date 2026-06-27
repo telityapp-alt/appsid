@@ -126,7 +126,7 @@ export default function RetroPopover({ app, onClose }) {
             </div>
           </div>
           <div className="retro-titlebar-center pop-tb-center">
-            <span className="pop-tb-brand">Builders</span>
+            <span className="pop-tb-brand">Apphunt</span>
             <span className="pop-tb-sep">—</span>
             <span className="pop-tb-name">{app.name}</span>
           </div>

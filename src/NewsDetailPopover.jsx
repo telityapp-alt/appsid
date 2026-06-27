@@ -133,7 +133,7 @@ export default function NewsDetailPopover({ article, onClose }) {
             </div>
           </div>
           <div className="retro-titlebar-center pop-tb-center">
-            <span className="pop-tb-brand">Builders</span>
+            <span className="pop-tb-brand">Apphunt</span>
             <span className="pop-tb-sep">&mdash;</span>
             <span className="pop-tb-name">{article.eyebrow}</span>
           </div>
@@ -198,7 +198,7 @@ export default function NewsDetailPopover({ article, onClose }) {
               </span>
               <span className="news-pop-author-info">
                 <span className="news-pop-author-name">
-                  {article.author || "Builders Team"}
+                  {article.author || "Apphunt Team"}
                 </span>
                 {article.authorRole && (
                   <span className="news-pop-author-role">
