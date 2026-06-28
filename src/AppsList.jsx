@@ -1,21 +1,14 @@
 import React from "react";
 import RetroPopover from "./RetroPopover";
 import { useApps } from "./hooks/useApps";
+import { useCategories } from "./hooks/useCategories";
 import { useUpvote } from "./hooks/useUpvote";
 import SubmitAppModal from "./components/SubmitAppModal";
 import { useAuth } from "./hooks/useAuth";
 
-const CATEGORIES = [
-  "All",
-  "EdTech Product",
-  "Analytics",
-  "Developer Tools",
-  "Productivity",
-  "SaaS",
-  "Live",
-  "On Development",
-];
-
+// ---------------------------------------------------------------------------
+// Icons
+// ---------------------------------------------------------------------------
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className="icon-inline">
@@ -37,9 +30,61 @@ function CaretUpIcon() {
   );
 }
 
-// Each list item manages its own upvote state independently
-function AppListItemWithUpvote({ app, onClick }) {
-  const { upvotes, upvoted, toggle } = useUpvote(app.id, app.upvotes);
+// ---------------------------------------------------------------------------
+// Skeleton loader — shown while first page is loading
+// ---------------------------------------------------------------------------
+function AppListSkeleton() {
+  return (
+    <ul className="app-list" aria-busy="true" aria-label="Memuat daftar apps">
+      {Array.from({ length: 5 }).map((_, i) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <li key={i} className="skeleton-item" aria-hidden="true">
+          <span className="skeleton-logo" />
+          <span className="skeleton-body">
+            <span className="skeleton-line skeleton-name" />
+            <span className="skeleton-line skeleton-tagline" />
+          </span>
+          <span className="skeleton-upvote" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sort controls
+// ---------------------------------------------------------------------------
+const SORT_OPTIONS = [
+  { value: "upvotes", label: "Terpopuler" },
+  { value: "newest", label: "Terbaru" },
+  { value: "today", label: "Hari ini" },
+];
+
+function SortControls({ activeSort, onChange }) {
+  return (
+    <div className="sort-controls" role="group" aria-label="Urutkan apps">
+      {SORT_OPTIONS.map((opt) => (
+        <button
+          key={opt.value}
+          className={`mini-tag-btn${activeSort === opt.value ? " active" : ""}`}
+          onClick={() => onChange(opt.value)}
+          aria-pressed={activeSort === opt.value}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Single app list item — owns its own optimistic upvote state
+// ---------------------------------------------------------------------------
+function AppListItem({ app, onClick }) {
+  const { upvotes, upvoted, pending, toggle } = useUpvote(
+    app.id,
+    app.upvotes_count ?? app.upvotes ?? 0,
+  );
 
   return (
     <article
@@ -51,22 +96,29 @@ function AppListItemWithUpvote({ app, onClick }) {
       aria-label={`Buka detail ${app.name}`}
     >
       <img
-        src={app.image}
+        src={app.logo_url ?? app.image}
         alt={app.name}
         className="app-list-thumb"
         width={56}
         height={56}
+        loading="lazy"
+        onError={(e) => {
+          e.currentTarget.src = "/placeholder-app.png";
+        }}
       />
       <div className="app-info">
         <span className="app-name">{app.name}</span>
         <span className="app-tagline">{app.tagline}</span>
       </div>
-      <span className="app-category-badge">{app.category}</span>
+      <span className="app-category-badge">
+        {app.category ?? app.launch_tags?.[0] ?? "General"}
+      </span>
       <div className="app-actions">
         <button
-          className={`upvote-button${upvoted ? " upvoted" : ""}`}
+          className={`upvote-button${upvoted ? " upvoted" : ""}${pending ? " pending" : ""}`}
           aria-label={`Upvote ${app.name}`}
           aria-pressed={upvoted}
+          disabled={pending}
           onClick={(e) => {
             e.stopPropagation();
             toggle();
@@ -80,13 +132,47 @@ function AppListItemWithUpvote({ app, onClick }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
 export default function AppsList() {
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [activeCategory, setActiveCategory] = React.useState("All");
+  const [activeCategory, setActiveCategory] = React.useState("Semua");
+  const [activeSort, setActiveSort] = React.useState("upvotes");
   const [selectedApp, setSelectedApp] = React.useState(null);
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
   const [showAuthModal, setShowAuthModal] = React.useState(false);
+
   const { user } = useAuth();
+
+  // Live category list from Supabase (with "Semua" prepended)
+  const { categories } = useCategories();
+
+  // Live app list from Supabase
+  const {
+    apps: appsData,
+    loading,
+    error,
+    hasMore,
+    loadMore,
+  } = useApps({
+    category: activeCategory === "Semua" ? null : activeCategory,
+    search: searchQuery,
+    sort: activeSort,
+  });
+
+  // Debounced search — reset category when user types so results make sense
+  const [searchInput, setSearchInput] = React.useState("");
+  const searchTimer = React.useRef(null);
+  function handleSearchChange(e) {
+    const val = e.target.value;
+    setSearchInput(val);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      setSearchQuery(val);
+      if (val) setActiveCategory("Semua");
+    }, 300);
+  }
 
   function handleSubmitClick() {
     if (user) {
@@ -96,21 +182,7 @@ export default function AppsList() {
     }
   }
 
-  function handleAuthSuccess() {
-    setShowAuthModal(false);
-    setShowSubmitModal(true);
-  }
-
-  // useApps handles filtering by category + search server-side (or in fallback)
-  const {
-    apps: appsData,
-    loading,
-    error,
-  } = useApps({
-    category: activeCategory === "All" ? null : activeCategory,
-    search: searchQuery,
-  });
-
+  // Sidebar: tech stacks derived from richContent kv blocks
   const techStacks = React.useMemo(() => {
     const stacks = new Set();
     appsData.forEach((app) => {
@@ -125,132 +197,150 @@ export default function AppsList() {
           }
         });
       }
+      // Also pull from builtWith
+      (app.builtWith ?? []).forEach((t) => {
+        if (t) stacks.add(t);
+      });
     });
     return Array.from(stacks).slice(0, 5);
   }, [appsData]);
 
+  // Sidebar: client industries inferred from categories
   const clientIndustries = React.useMemo(() => {
     const industries = new Set();
     appsData.forEach((app) => {
-      if (app.category) {
-        if (
-          app.category.includes("EdTech") ||
-          app.category.includes("Learning")
-        )
-          industries.add("Education");
-        if (app.category.includes("HR") || app.category.includes("Talent"))
-          industries.add("HR Tech");
-        if (
-          app.category.includes("Healthcare") ||
-          app.category.includes("Medical")
-        )
-          industries.add("Healthcare");
-        if (app.category.includes("SaaS") || app.category.includes("B2B"))
-          industries.add("SaaS");
-      }
-      if (app.tags) {
-        app.tags.forEach((tag) => {
-          if (tag.includes("EdTech") || tag.includes("Learning"))
-            industries.add("Education");
-          if (tag.includes("HR") || tag.includes("Talent"))
-            industries.add("HR Tech");
-          if (tag.includes("Healthcare") || tag.includes("Medical"))
-            industries.add("Healthcare");
-          if (tag.includes("SaaS") || tag.includes("B2B"))
-            industries.add("SaaS");
-        });
-      }
+      const cat = app.category ?? "";
+      if (cat.includes("EdTech") || cat.includes("Learning"))
+        industries.add("Education");
+      if (cat.includes("Finance") || cat.includes("Keuangan"))
+        industries.add("Finance");
+      if (cat.includes("Health") || cat.includes("Kesehatan"))
+        industries.add("Healthcare");
+      if (cat.includes("SaaS") || cat.includes("B2B"))
+        industries.add("Enterprise");
+      if (cat.includes("Developer") || cat.includes("Tools"))
+        industries.add("Developer Tools");
     });
-    return Array.from(industries).slice(0, 4);
+    return Array.from(industries).slice(0, 6);
   }, [appsData]);
 
-  const featuredProject = React.useMemo(() => {
-    return (
-      appsData.find((app) => app.status?.toLowerCase().includes("live")) ??
-      appsData[0] ??
-      null
-    );
-  }, [appsData]);
+  // Featured project = first app in the list (highest upvotes by default sort)
+  const featuredProject = appsData[0] ?? null;
 
   return (
     <section className="apps-page-layout">
-      <aside className="apps-left-sidebar">
-        <h3 className="left-sidebar-title">Categories</h3>
-        <div className="tags-list">
-          {CATEGORIES.map((cat) => (
+      {/* ---------------------------------------------------------------- */}
+      {/* Main column                                                       */}
+      {/* ---------------------------------------------------------------- */}
+      <div className="apps-main-col">
+        {/* Toolbar: search + submit */}
+        <div className="apps-toolbar">
+          <label className="search-wrap" htmlFor="apps-search">
+            <SearchIcon />
+            <input
+              id="apps-search"
+              type="search"
+              className="search-input"
+              placeholder="Cari apps..."
+              value={searchInput}
+              onChange={handleSearchChange}
+              aria-label="Cari apps"
+            />
+          </label>
+          <button
+            className="cta-btn"
+            onClick={handleSubmitClick}
+            aria-label="Submit app baru"
+          >
+            + Submit App
+          </button>
+        </div>
+
+        {/* Category filter tabs */}
+        <nav className="category-tabs" aria-label="Filter kategori">
+          {categories.map((cat) => (
             <button
               key={cat}
-              className={`tag-filter-btn${activeCategory === cat ? " active" : ""}`}
+              className={`mini-tag-btn${activeCategory === cat ? " active" : ""}`}
               onClick={() => setActiveCategory(cat)}
               aria-pressed={activeCategory === cat}
             >
               {cat}
             </button>
           ))}
-        </div>
-      </aside>
+        </nav>
 
-      <div className="apps-main">
-        <div className="apps-main-header">
-          <div className="search-bar">
-            <SearchIcon />
-            <input
-              type="search"
-              placeholder="Cari app atau produk..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-              aria-label="Cari aplikasi"
-            />
-          </div>
-          <button
-            type="button"
-            className="cta-button"
-            onClick={handleSubmitClick}
-            style={{ whiteSpace: "nowrap" }}
-          >
-            + Submit App
-          </button>
-        </div>
+        {/* Sort controls */}
+        <SortControls activeSort={activeSort} onChange={setActiveSort} />
 
-        {loading && (
-          <div className="apps-loading" aria-live="polite">
-            Memuat...
-          </div>
-        )}
-
-        {error && (
-          <div className="apps-error" role="alert">
-            Gagal memuat apps: {error}
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div className="apps-list">
-            {appsData.length === 0 ? (
-              <p className="apps-empty">Tidak ada app yang cocok.</p>
-            ) : (
-              appsData.map((app) => (
-                <AppListItemWithUpvote
-                  key={app.id}
-                  app={app}
-                  onClick={() => setSelectedApp(app)}
-                />
-              ))
+        {/* App list body */}
+        {loading && appsData.length === 0 ? (
+          <AppListSkeleton />
+        ) : error ? (
+          <p className="app-list-error" role="alert">
+            {error}
+          </p>
+        ) : appsData.length === 0 ? (
+          <p className="app-list-empty">
+            Tidak ada apps ditemukan.{" "}
+            {searchQuery && (
+              <button
+                className="link-btn"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchQuery("");
+                }}
+              >
+                Hapus pencarian
+              </button>
             )}
-          </div>
+          </p>
+        ) : (
+          <>
+            <ul className="app-list" aria-label="Daftar apps">
+              {appsData.map((app) => (
+                <li key={app.id}>
+                  <AppListItem app={app} onClick={() => setSelectedApp(app)} />
+                </li>
+              ))}
+            </ul>
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="app-list-loadmore">
+                <button
+                  className="mini-tag-btn"
+                  onClick={loadMore}
+                  disabled={loading}
+                  aria-label="Muat lebih banyak apps"
+                >
+                  {loading ? "Memuat..." : "Muat lebih banyak"}
+                </button>
+              </div>
+            )}
+
+            {/* Loading more indicator */}
+            {loading && appsData.length > 0 && (
+              <p className="app-list-loading-more" aria-live="polite">
+                Memuat...
+              </p>
+            )}
+          </>
         )}
       </div>
 
+      {/* ---------------------------------------------------------------- */}
+      {/* Sidebar                                                           */}
+      {/* ---------------------------------------------------------------- */}
       <aside className="apps-sidebar">
         {featuredProject && (
           <div className="sidebar-widget">
-            <span className="sidebar-eyebrow">Featured Project</span>
+            <span className="sidebar-eyebrow">Featured</span>
             <article className="library-card featured-card">
               <div className="library-card-hero">
                 <div className="library-card-screenshot-wrap">
                   <img
-                    src={featuredProject.image}
+                    src={featuredProject.logo_url ?? featuredProject.image}
                     alt={`${featuredProject.name} showcase`}
                     className="library-card-screenshot"
                   />
@@ -292,12 +382,14 @@ export default function AppsList() {
         )}
       </aside>
 
+      {/* ---------------------------------------------------------------- */}
+      {/* Overlays                                                          */}
+      {/* ---------------------------------------------------------------- */}
       <RetroPopover app={selectedApp} onClose={() => setSelectedApp(null)} />
       <SubmitAppModal
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
       />
-      {/* AuthModal: render here if/when AuthModal component is added */}
       {showAuthModal && <div style={{ display: "none" }} aria-hidden="true" />}
     </section>
   );

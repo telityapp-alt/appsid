@@ -1,7 +1,37 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
+/**
+ * useApps({ category, search, sort, pageSize })
+ *
+ * Fetches live app rows from the Supabase `apps` table with:
+ *   - Server-side search (.ilike on name + tagline)
+ *   - Server-side category filter (array contains)
+ *   - 3-way sort: "upvotes" | "newest" | "today"
+ *   - range()-based pagination with a "load more" cursor
+ *   - Realtime subscription for upvotes_count updates
+ *   - Graceful fallback to empty state when supabase is null
+ *
+ * @param {object} opts
+ * @param {string} [opts.category]   launch_tag to filter by. null/"Semua" = all.
+ * @param {string} [opts.search]     free-text search against name + tagline.
+ * @param {string} [opts.sort]       "upvotes" | "newest" | "today". Default: "upvotes"
+ * @param {number} [opts.pageSize]   rows per page. Default: 20
+ *
+ * @returns {{
+ *   apps: NormalizedApp[],
+ *   loading: boolean,
+ *   error: string|null,
+ *   total: number,
+ *   hasMore: boolean,
+ *   loadMore: () => void,
+ * }}
+ */
 
-// Fallback data when Supabase env vars are not set
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "../lib/supabase";
+import { normalizeAppRow } from "../lib/normalizeAppRow";
+
+// ---------------------------------------------------------------------------
+// Fallback data — shown when Supabase env vars are missing (demo / offline)
+// ---------------------------------------------------------------------------
 const FALLBACK_APPS = [
   {
     id: "preppy",
@@ -11,9 +41,16 @@ const FALLBACK_APPS = [
     category: "EdTech Product",
     status: "live",
     image: "/preppy/hero-web.png",
+    logo_url: "/preppy/hero-web.png",
+    gallery: [
+      "/preppy/hero-web.png",
+      "/preppy/screen-1.webp",
+      "/preppy/screen-2.webp",
+    ],
     upvotes: 42,
+    upvotes_count: 42,
     overview:
-      "Preppy adalah platform belajar bergaya Duolingo untuk persiapan beasiswa, IELTS, dan CPNS. Kami mengubah materi berat dan membosankan menjadi pengalaman belajar yang engaging melalui gamification psychology, AI personalization, dan guerrilla marketing strategy.",
+      "Preppy adalah platform belajar bergaya Duolingo untuk persiapan beasiswa, IELTS, dan CPNS.",
     stats: [
       { label: "30-Day Retention", value: "61%" },
       { label: "Free-to-Paid CVR", value: "18%" },
@@ -24,78 +61,11 @@ const FALLBACK_APPS = [
       "Cross-platform: PWA + Native (React + Capacitor)",
       "Freemium growth loop dengan guerrilla marketing",
     ],
-    strategy: [
-      {
-        phase: "Behavioral Research",
-        desc: "Kami mempelajari psychology framework di balik Duolingo (BJ Fogg's Behavior Model, Hooked Model, Flow Theory) dan mengadaptasinya untuk konteks high-stakes learning.",
-        image: "/preppy/flow-behavioral-research.html",
-      },
-      {
-        phase: "Gamification Design",
-        desc: "Implementasi 6 core principles: Loss Aversion (streaks), Variable Rewards (XP bonuses), Social Proof (leaderboards), Immediate Feedback, Progressive Mastery, dan Endowed Progress Effect.",
-        image: "/preppy/flow-gamification-design.html",
-      },
-      {
-        phase: "Guerrilla Marketing Funnel",
-        desc: "Lead dengan 5000+ database beasiswa gratis (awareness), tease AI prediction (consideration), unlock premium strategy (conversion), retain via daily streaks (retention).",
-        image: "/preppy/flow-marketing-funnel.html",
-      },
-      {
-        phase: "Cross-Platform Architecture",
-        desc: "React + Capacitor + PWA: satu codebase untuk web, Android, iOS. Monorepo dengan pnpm workspaces, TanStack Query state management, JWT auth, hybrid real-time (polling + Socket.io).",
-        image: "/preppy/flow-architecture.html",
-      },
-    ],
-    userJourney: [
-      {
-        step: "Discovery via Free Database",
-        tag: "Day 1",
-        desc: "User menemukan Preppy melalui pencarian beasiswa. Database 5000+ entries gratis membangun trust dan reciprocity.",
-        callout: "70% visitors explore database — first touch dengan brand",
-      },
-      {
-        step: "AI Prediction Hook",
-        tag: "Day 1-3",
-        desc: "User mencoba AI college prediction tool (free tier). Mereka experience personalized value dan lihat potensi platform.",
-        callout: "42% yang explore database mencoba AI prediction",
-      },
-      {
-        step: "Premium Conversion",
-        tag: "Day 3-7",
-        desc: "User sudah invested time dan data. Premium unlock (full AI strategy, mock interview, adaptive testing) solve pain point mereka untuk competitive edge.",
-        callout: "18% convert to paid within 7 days (3x industry average)",
-      },
-      {
-        step: "Habit Formation",
-        tag: "Day 7-30",
-        desc: "Daily streaks, push notifications, leaderboards, dan achievement unlocks create habit loop. Loss aversion membuat mereka tidak mau break progress.",
-        callout: "61% retention at D30 (far exceeds EdTech average of 20-25%)",
-      },
-    ],
+    strategy: [],
+    userJourney: [],
     richContent: {
       title: "Deep Dive: Psychology of Engagement",
       blocks: [
-        {
-          type: "text",
-          content:
-            "High-stakes testing (IELTS, CPNS, scholarship essays) traditionally sucks. Expensive prep courses (Rp 2-5 million), boring materials, and 3-5% completion rates for self-study. Kami memecahkan ini dengan gamification psychology yang proven work di Duolingo, tapi untuk konteks yang jauh lebih serius.",
-        },
-        {
-          type: "callout",
-          content:
-            "Insight kunci: Motivation bukan masalah personal discipline. Ini masalah system design. Struktur yang tepat membuat engagement menjadi effortless.",
-        },
-        {
-          type: "list",
-          items: [
-            "Loss Aversion & Streaks — Kahneman's Prospect Theory",
-            "Variable Rewards — B.F. Skinner's Operant Conditioning",
-            "Social Proof & Competition — Cialdini's Influence",
-            "Immediate Feedback Loop — Flow State (Csikszentmihalyi)",
-            "Progressive Mastery — Zone of Proximal Development (Vygotsky)",
-            "Endowed Progress Effect — Nunes & Dreze Research",
-          ],
-        },
         {
           type: "kv",
           rows: [
@@ -104,147 +74,223 @@ const FALLBACK_APPS = [
               value: "React + Vite + Capacitor + Tailwind",
             },
             { label: "Platform", value: "Web (PWA) + iOS + Android" },
-            {
-              label: "Animation",
-              value: "Framer Motion for Duolingo-level polish",
-            },
             { label: "Status", value: "Live on Google Play Store" },
           ],
         },
       ],
     },
-    gallery: [
-      "/preppy/hero-web.png",
-      "/preppy/screen-1.webp",
-      "/preppy/screen-2.webp",
-    ],
-    website: null,
-    makers: [],
+    launch_tags: ["EdTech Product"],
     tags: ["EdTech", "Gamification", "PWA", "Mobile"],
     builtWith: ["React", "Vite", "Capacitor", "Tailwind", "Framer Motion"],
     pricingType: "freemium",
+    pricing_type: "freemium",
     launchDate: "2026-06-28",
+    launch_date: "2026-06-28",
+    website: null,
+    makers: [],
+    app_makers: [],
+    reviews_count: 0,
   },
 ];
 
-export function useApps({ category = null, search = "" } = {}) {
-  const [apps, setApps] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const DEFAULT_PAGE_SIZE = 20;
 
+export function useApps({
+  category = null,
+  search = "",
+  sort = "upvotes",
+  pageSize = DEFAULT_PAGE_SIZE,
+} = {}) {
+  const clientMissing = supabase === null;
+
+  const [apps, setApps] = useState([]);
+  const [loading, setLoading] = useState(!clientMissing);
+  const [error, setError] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+
+  // Track the current channel so cleanup can unsubscribe it
+  const channelRef = useRef(null);
+  // Flag to skip stale async results after deps changed
+  const cancelledRef = useRef(false);
+
+  // ------------------------------------------------------------------
+  // Reset to page 0 + clear list whenever filters change
+  // ------------------------------------------------------------------
   useEffect(() => {
-    let cancelled = false;
+    setPage(0);
+    setApps([]);
+    setError(null);
+  }, [category, search, sort]);
+
+  // ------------------------------------------------------------------
+  // Core fetch effect — re-runs when page or filters change
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (clientMissing) {
+      // --- Offline / no-env fallback: filter client-side ---
+      let filtered = FALLBACK_APPS;
+      if (category && category !== "Semua") {
+        filtered = filtered.filter((a) =>
+          (a.launch_tags ?? []).includes(category),
+        );
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        filtered = filtered.filter(
+          (a) =>
+            a.name.toLowerCase().includes(q) ||
+            a.tagline.toLowerCase().includes(q),
+        );
+      }
+      setApps(filtered);
+      setTotal(filtered.length);
+      setLoading(false);
+      return;
+    }
+
+    cancelledRef.current = false;
+    setLoading(true);
 
     async function fetchApps() {
-      if (!supabase) {
-        // No Supabase client — use fallback data with client-side filtering
-        let filtered = FALLBACK_APPS;
-        if (category && category !== "All") {
-          filtered = filtered.filter(
-            (a) => a.category === category || a.status === category,
-          );
-        }
-        if (search) {
-          const q = search.toLowerCase();
-          filtered = filtered.filter(
-            (a) =>
-              a.name.toLowerCase().includes(q) ||
-              a.tagline.toLowerCase().includes(q),
-          );
-        }
-        setApps(filtered);
-        setLoading(false);
-        return;
-      }
-
       try {
-        setLoading(true);
-        setError(null);
-
-        // Schema: status = 'live' (enum), sort by upvotes_count DESC
+        // Select apps + makers in one shot
         let query = supabase
           .from("apps")
           .select(
-            `
-            id, slug, name, tagline, description,
-            website_url, logo_url, gallery_images,
-            launch_tags, built_with, is_open_source,
-            pricing_type, status, upvotes_count, reviews_count,
-            launch_date, created_at,
-            app_makers ( name, avatar_url, role, is_verified, order_index )
-          `,
+            `id, slug, name, tagline, logo_url, gallery_images,
+             launch_tags, upvotes_count, reviews_count,
+             launch_date, status, pricing_type, created_at,
+             description, website_url, built_with, is_open_source,
+             app_makers ( id, name, avatar_url, role, twitter, order_index )`,
+            { count: "exact" },
           )
-          .eq("status", "live")
-          .order("upvotes_count", { ascending: false });
+          .eq("status", "live");
 
-        if (category && category !== "All") {
-          // launch_tags is a text array — use overlap operator
+        // --- Category filter (array contains) ---
+        if (category && category !== "Semua") {
           query = query.contains("launch_tags", [category]);
         }
 
-        const { data, error: sbError } = await query;
-        if (sbError) throw sbError;
-
-        let results = (data ?? []).map(remapApp);
-
-        if (search) {
-          const q = search.toLowerCase();
-          results = results.filter(
-            (a) =>
-              a.name.toLowerCase().includes(q) ||
-              a.tagline.toLowerCase().includes(q),
-          );
+        // --- Server-side search (name OR tagline) ---
+        if (search && search.trim()) {
+          const q = `%${search.trim()}%`;
+          query = query.or(`name.ilike.${q},tagline.ilike.${q}`);
         }
 
-        if (!cancelled) setApps(results);
+        // --- Sort ---
+        if (sort === "upvotes") {
+          query = query.order("upvotes_count", { ascending: false });
+        } else if (sort === "newest") {
+          query = query.order("created_at", { ascending: false });
+        } else if (sort === "today") {
+          const today = new Date().toISOString().slice(0, 10);
+          query = query
+            .eq("launch_date", today)
+            .order("upvotes_count", { ascending: false });
+        }
+
+        // --- Pagination ---
+        const from = page * pageSize;
+        const to = from + pageSize - 1;
+        query = query.range(from, to);
+
+        const { data, error: sbError, count } = await query;
+
+        if (cancelledRef.current) return;
+
+        if (sbError) {
+          setError(sbError.message ?? "Gagal memuat apps");
+          setLoading(false);
+          return;
+        }
+
+        const normalized = (data ?? []).map(normalizeAppRow);
+
+        setApps((prev) => (page === 0 ? normalized : [...prev, ...normalized]));
+        setTotal(count ?? 0);
+        setError(null);
       } catch (err) {
-        if (!cancelled) setError(err.message ?? "Gagal memuat apps");
+        if (!cancelledRef.current) {
+          setError(err?.message ?? "Terjadi kesalahan saat memuat apps");
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelledRef.current) {
+          setLoading(false);
+        }
       }
     }
 
     fetchApps();
+
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
-  }, [category, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, search, sort, page, pageSize, clientMissing]);
 
-  return { apps, loading, error };
-}
+  // ------------------------------------------------------------------
+  // Realtime subscription — upvotes_count updates only
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    if (clientMissing) return;
 
-// Map Supabase DB columns → shape expected by AppsList & RetroPopover
-// New schema uses: logo_url, gallery_images, website_url, upvotes_count,
-//                  launch_tags, built_with, pricing_type, description
-function remapApp(row) {
+    // Unsubscribe from previous channel before creating a new one
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel("apps-upvotes-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "apps",
+        },
+        (payload) => {
+          const updated = payload.new;
+          if (!updated?.id) return;
+          setApps((prev) =>
+            prev.map((app) =>
+              app.id === updated.id
+                ? {
+                    ...app,
+                    upvotes_count: updated.upvotes_count,
+                    upvotes: updated.upvotes_count,
+                  }
+                : app,
+            ),
+          );
+        },
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+      channelRef.current = null;
+    };
+  }, [clientMissing]);
+
+  // ------------------------------------------------------------------
+  // Pagination helpers
+  // ------------------------------------------------------------------
+  const loadMore = useCallback(() => {
+    setPage((p) => p + 1);
+  }, []);
+
+  const hasMore = apps.length < total;
+
   return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    tagline: row.tagline,
-    // Map new schema fields to UI fields
-    category: row.launch_tags?.[0] ?? "General",
-    status: row.status,
-    image: row.logo_url,
-    gallery: row.gallery_images ?? [],
-    overview: row.description ?? "",
-    website: row.website_url ?? null,
-    upvotes: row.upvotes_count ?? 0,
-    tags: row.launch_tags ?? [],
-    builtWith: row.built_with ?? [],
-    pricingType: row.pricing_type ?? "free",
-    isOpenSource: row.is_open_source ?? false,
-    launchDate: row.launch_date,
-    reviewsCount: row.reviews_count ?? 0,
-    makers: (row.app_makers ?? [])
-      .sort((a, b) => a.order_index - b.order_index)
-      .map((m) => m.name),
-    // These fields are not in the new schema — kept as empty for compatibility
-    // with RetroPopover which renders them only if populated
-    stats: [],
-    highlights: [],
-    strategy: [],
-    userJourney: [],
-    richContent: null,
+    apps,
+    loading,
+    error,
+    total,
+    hasMore,
+    loadMore,
   };
 }
