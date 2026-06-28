@@ -306,17 +306,28 @@ function normalizeApp(raw) {
     reviews_count: raw.reviews_count ?? 0,
     launch_date: raw.launch_date ?? raw.created_at ?? null,
     created_at: raw.created_at ?? null,
-    app_makers: Array.isArray(raw.app_makers)
-      ? raw.app_makers
-      : Array.isArray(raw.team)
-        ? raw.team.map((m) => ({
-            name: m.name ?? "Anggota Tim",
-            avatar_url: m.avatar ?? m.avatar_url ?? null,
-            role: m.role ?? "",
-            website_url: m.website_url ?? null,
-            twitter_handle: m.twitter_handle ?? null,
-          }))
-        : [],
+    app_makers: (() => {
+      const raw_makers = Array.isArray(raw.app_makers)
+        ? raw.app_makers
+        : Array.isArray(raw.team)
+          ? raw.team.map((m) => ({
+              name: m.name ?? "Anggota Tim",
+              avatar_url: m.avatar ?? m.avatar_url ?? null,
+              role: m.role ?? "",
+              website_url: m.website_url ?? null,
+              twitter_handle: m.twitter_handle ?? null,
+            }))
+          : [];
+      // Deduplicate by id, then by name — prevents double-render when
+      // both FALLBACK data and normalizeAppRow already processed makers
+      const seen = new Set();
+      return raw_makers.filter((m) => {
+        const key = m.id ?? m.name;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    })(),
     app_comments: Array.isArray(raw.app_comments) ? raw.app_comments : [],
     built_with: Array.isArray(raw.built_with) ? raw.built_with : [],
     first_comment: raw.first_comment ?? null,
@@ -407,12 +418,27 @@ export default function RetroPopover({
     toggle: toggleFollow,
   } = useFollow(app?.id, app?.followers_count ?? 0);
   const { requireAuth } = useAuthGuard();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [gallerySlide, setGallerySlide] = useState(0);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tabVisible, setTabVisible] = useState(true);
+
+  // Reviews state
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [myRating, setMyRating] = useState(0);
+  const [myReviewText, setMyReviewText] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  // Forum / comments state
+  const [liveComments, setLiveComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
   const autoRef = useRef(null);
   const hoverRef = useRef(false);
 
@@ -474,6 +500,173 @@ export default function RetroPopover({
         );
       } catch {
         showToast("Gagal mengikuti. Coba lagi.", "error");
+      }
+    });
+  }
+
+  // Helper: fetch profiles map { [user_id]: { full_name, avatar_url } }
+  async function fetchProfilesMap(userIds) {
+    if (!userIds.length || !supabase) return {};
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", userIds);
+    const map = {};
+    (data ?? []).forEach((p) => {
+      map[p.id] = p;
+    });
+    return map;
+  }
+
+  // Load reviews when ulasan tab opens
+  useEffect(() => {
+    if (activeTab !== "ulasan" || !app.id || !supabase) return;
+    let cancelled = false;
+    setReviewsLoading(true);
+    supabase
+      .from("app_reviews")
+      .select("id, rating, body, created_at, user_id")
+      .eq("app_id", app.id)
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(async ({ data }) => {
+        if (cancelled) return;
+        const rows = data ?? [];
+        const ids = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+        const profilesMap = await fetchProfilesMap(ids);
+        if (!cancelled) {
+          setReviews(
+            rows.map((r) => ({
+              ...r,
+              profiles: profilesMap[r.user_id] ?? null,
+            })),
+          );
+          setReviewsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, app.id]);
+
+  // Load live comments when forum tab opens
+  useEffect(() => {
+    if (activeTab !== "forum" || !app.id || !supabase) return;
+    let cancelled = false;
+    setCommentsLoading(true);
+    supabase
+      .from("app_comments")
+      .select("id, body, created_at, user_id, is_pinned")
+      .eq("app_id", app.id)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: true })
+      .limit(50)
+      .then(async ({ data }) => {
+        if (cancelled) return;
+        const rows = data ?? [];
+        const ids = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+        const profilesMap = await fetchProfilesMap(ids);
+        if (!cancelled) {
+          setLiveComments(
+            rows.map((r) => ({
+              ...r,
+              profiles: profilesMap[r.user_id] ?? null,
+            })),
+          );
+          setCommentsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, app.id]);
+
+  // Submit review
+  async function handleSubmitReview() {
+    requireAuth(async () => {
+      if (!myRating) {
+        showToast("Pilih rating dulu.", "error");
+        return;
+      }
+      if (!myReviewText.trim()) {
+        showToast("Tulis ulasan dulu.", "error");
+        return;
+      }
+      setSubmittingReview(true);
+      try {
+        const { error } = await supabase.from("app_reviews").upsert(
+          {
+            app_id: app.id,
+            user_id: user.id,
+            rating: myRating,
+            body: myReviewText.trim(),
+          },
+          { onConflict: "app_id,user_id" },
+        );
+        if (error) throw error;
+        showToast("Ulasan berhasil disimpan!", "success");
+        setMyRating(0);
+        setMyReviewText("");
+        const { data: rRows } = await supabase
+          .from("app_reviews")
+          .select("id, rating, body, created_at, user_id")
+          .eq("app_id", app.id)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        const rIds = [
+          ...new Set((rRows ?? []).map((r) => r.user_id).filter(Boolean)),
+        ];
+        const rProfiles = await fetchProfilesMap(rIds);
+        setReviews(
+          (rRows ?? []).map((r) => ({
+            ...r,
+            profiles: rProfiles[r.user_id] ?? null,
+          })),
+        );
+      } catch (err) {
+        showToast(err.message ?? "Gagal mengirim ulasan.", "error");
+      } finally {
+        setSubmittingReview(false);
+      }
+    });
+  }
+
+  // Submit comment
+  async function handleSubmitComment() {
+    requireAuth(async () => {
+      if (!commentText.trim()) return;
+      setSubmittingComment(true);
+      try {
+        const { error } = await supabase.from("app_comments").insert({
+          app_id: app.id,
+          user_id: user.id,
+          body: commentText.trim(),
+          is_pinned: false,
+        });
+        if (error) throw error;
+        showToast("Komentar berhasil dikirim!", "success");
+        setCommentText("");
+        const { data: cRows } = await supabase
+          .from("app_comments")
+          .select("id, body, created_at, user_id, is_pinned")
+          .eq("app_id", app.id)
+          .order("is_pinned", { ascending: false })
+          .order("created_at", { ascending: true })
+          .limit(50);
+        const cIds = [
+          ...new Set((cRows ?? []).map((r) => r.user_id).filter(Boolean)),
+        ];
+        const cProfiles = await fetchProfilesMap(cIds);
+        setLiveComments(
+          (cRows ?? []).map((r) => ({
+            ...r,
+            profiles: cProfiles[r.user_id] ?? null,
+          })),
+        );
+      } catch (err) {
+        showToast(err.message ?? "Gagal mengirim komentar.", "error");
+      } finally {
+        setSubmittingComment(false);
       }
     });
   }
@@ -871,77 +1064,438 @@ export default function RetroPopover({
 
                 {/* ULASAN TAB */}
                 {activeTab === "ulasan" && (
-                  <div className="ph-pop-reviews-empty">
-                    <p
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 20,
+                    }}
+                  >
+                    {/* Write review form */}
+                    <div
                       style={{
-                        color: "#7b8594",
-                        fontSize: 14,
-                        textAlign: "center",
-                        padding: "32px 0",
+                        padding: "16px",
+                        borderRadius: 10,
+                        border: "1px solid #d9d1c2",
+                        background: "#fffdf8",
                       }}
                     >
-                      {app.reviews_count > 0
-                        ? `${app.reviews_count} ulasan tersedia.`
-                        : "Belum ada ulasan."}
-                    </p>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#0d1d38",
+                          margin: "0 0 10px",
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        Tulis ulasan
+                      </p>
+                      {/* Star picker */}
+                      <div
+                        style={{ display: "flex", gap: 4, marginBottom: 10 }}
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setMyRating(n)}
+                            onMouseEnter={() => setHoverRating(n)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 2,
+                              fontSize: 22,
+                              color:
+                                n <= (hoverRating || myRating)
+                                  ? "#f6a61e"
+                                  : "#d9d1c2",
+                              transition: "color 120ms ease",
+                            }}
+                            aria-label={`${n} bintang`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                        {myRating > 0 && (
+                          <span
+                            style={{
+                              fontSize: 12,
+                              color: "#7b8594",
+                              alignSelf: "center",
+                              marginLeft: 4,
+                            }}
+                          >
+                            {
+                              [
+                                "",
+                                "Buruk",
+                                "Kurang",
+                                "Cukup",
+                                "Bagus",
+                                "Luar biasa",
+                              ][myRating]
+                            }
+                          </span>
+                        )}
+                      </div>
+                      <textarea
+                        value={myReviewText}
+                        onChange={(e) => setMyReviewText(e.target.value)}
+                        placeholder="Ceritakan pengalamanmu dengan app ini..."
+                        maxLength={500}
+                        rows={3}
+                        style={{
+                          width: "100%",
+                          boxSizing: "border-box",
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: "1px solid #d9d1c2",
+                          fontSize: 13,
+                          color: "#29405f",
+                          resize: "vertical",
+                          fontFamily: "inherit",
+                          background: "#fff",
+                          outline: "none",
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginTop: 8,
+                        }}
+                      >
+                        <span style={{ fontSize: 11, color: "#7b8594" }}>
+                          {myReviewText.length}/500
+                        </span>
+                        <button
+                          type="button"
+                          className="cta-button"
+                          style={{
+                            height: 30,
+                            fontSize: 12,
+                            padding: "0 14px",
+                          }}
+                          onClick={handleSubmitReview}
+                          disabled={submittingReview}
+                        >
+                          {submittingReview ? "Mengirim..." : "Kirim ulasan"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Reviews list */}
+                    {reviewsLoading ? (
+                      <p
+                        style={{
+                          color: "#7b8594",
+                          fontSize: 13,
+                          textAlign: "center",
+                          padding: "16px 0",
+                        }}
+                      >
+                        Memuat ulasan...
+                      </p>
+                    ) : reviews.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "24px 0" }}>
+                        <p
+                          style={{ fontSize: 14, color: "#7b8594", margin: 0 }}
+                        >
+                          Belum ada ulasan. Jadilah yang pertama!
+                        </p>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 12,
+                        }}
+                      >
+                        {reviews.map((r, i) => (
+                          <div
+                            key={r.id ?? i}
+                            style={{
+                              padding: "12px 14px",
+                              borderRadius: 10,
+                              border: "1px solid #d9d1c2",
+                              background: "#fffdf8",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                marginBottom: 6,
+                              }}
+                            >
+                              <Avatar
+                                src={r.profiles?.avatar_url}
+                                name={r.profiles?.full_name ?? "Pengguna"}
+                                size={28}
+                              />
+                              <strong
+                                style={{ fontSize: 13, color: "#0d1d38" }}
+                              >
+                                {r.profiles?.full_name ?? "Pengguna"}
+                              </strong>
+                              <div
+                                style={{
+                                  marginLeft: "auto",
+                                  display: "flex",
+                                  gap: 2,
+                                }}
+                              >
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <span
+                                    key={n}
+                                    style={{
+                                      fontSize: 13,
+                                      color:
+                                        n <= r.rating ? "#f6a61e" : "#d9d1c2",
+                                    }}
+                                  >
+                                    ★
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            {r.body && (
+                              <p
+                                style={{
+                                  fontSize: 13,
+                                  color: "#29405f",
+                                  margin: 0,
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                {r.body}
+                              </p>
+                            )}
+                            <p
+                              style={{
+                                fontSize: 11,
+                                color: "#7b8594",
+                                margin: "6px 0 0",
+                              }}
+                            >
+                              {timeAgo(r.created_at)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* FORUM TAB */}
                 {activeTab === "forum" && (
-                  <div className="ph-pop-comments">
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 16,
+                    }}
+                  >
+                    {/* First comment (maker's intro) */}
                     {app.first_comment && (
-                      <div className="ph-pop-comment">
-                        <Avatar
-                          src={app.first_comment.avatar_url}
-                          name={app.first_comment.author}
-                          size={36}
-                        />
-                        <div className="ph-pop-comment-body">
-                          <div className="ph-pop-comment-meta">
-                            <strong>{app.first_comment.author}</strong>
-                            <span className="ph-pop-comment-time">
-                              {timeAgo(app.first_comment.created_at)}
+                      <div
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: 10,
+                          border: "1px solid #d9d1c2",
+                          background: "#fffdf8",
+                          borderLeft: "3px solid #f6a61e",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            marginBottom: 6,
+                          }}
+                        >
+                          <Avatar
+                            src={app.app_makers?.[0]?.avatar_url}
+                            name={app.app_makers?.[0]?.name ?? "Maker"}
+                            size={32}
+                          />
+                          <div>
+                            <strong
+                              style={{
+                                fontSize: 13,
+                                color: "#0d1d38",
+                                display: "block",
+                              }}
+                            >
+                              {app.app_makers?.[0]?.name ?? "Maker"}
+                            </strong>
+                            <span style={{ fontSize: 11, color: "#7b8594" }}>
+                              {app.app_makers?.[0]?.role ?? "Pembuat"}
                             </span>
                           </div>
-                          <p className="ph-pop-comment-text">
-                            {app.first_comment.body}
-                          </p>
+                          <span
+                            style={{
+                              marginLeft: "auto",
+                              fontSize: 11,
+                              padding: "2px 7px",
+                              borderRadius: 4,
+                              background: "#fef3c7",
+                              color: "#92400e",
+                              border: "1px solid #fcd34d",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Maker
+                          </span>
                         </div>
+                        <p
+                          style={{
+                            fontSize: 13,
+                            color: "#29405f",
+                            margin: 0,
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          {app.first_comment}
+                        </p>
                       </div>
                     )}
-                    {app.app_comments.map((c, i) => (
-                      <div key={c.id ?? i} className="ph-pop-comment">
-                        <Avatar src={c.avatar_url} name={c.author} size={36} />
-                        <div className="ph-pop-comment-body">
-                          <div className="ph-pop-comment-meta">
-                            <strong>{c.author}</strong>
-                            <span className="ph-pop-comment-time">
-                              {timeAgo(c.created_at)}
-                            </span>
-                          </div>
-                          <p className="ph-pop-comment-text">{c.body}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {!app.first_comment && app.app_comments.length === 0 && (
+
+                    {/* Live comments */}
+                    {commentsLoading ? (
                       <p
                         style={{
                           color: "#7b8594",
-                          fontSize: 14,
+                          fontSize: 13,
                           textAlign: "center",
-                          padding: "32px 0",
+                          padding: "8px 0",
                         }}
                       >
-                        Belum ada diskusi.
+                        Memuat komentar...
                       </p>
+                    ) : liveComments.length === 0 && !app.first_comment ? (
+                      <p
+                        style={{
+                          color: "#7b8594",
+                          fontSize: 13,
+                          textAlign: "center",
+                          padding: "16px 0",
+                        }}
+                      >
+                        Belum ada diskusi. Mulai percakapan!
+                      </p>
+                    ) : (
+                      liveComments.map((c, i) => (
+                        <div key={c.id ?? i} className="ph-pop-comment">
+                          <Avatar
+                            src={c.profiles?.avatar_url}
+                            name={c.profiles?.full_name ?? "Pengguna"}
+                            size={36}
+                          />
+                          <div className="ph-pop-comment-body">
+                            <div className="ph-pop-comment-meta">
+                              <strong>
+                                {c.profiles?.full_name ?? "Pengguna"}
+                              </strong>
+                              {c.is_pinned && (
+                                <span
+                                  style={{
+                                    fontSize: 10,
+                                    padding: "1px 6px",
+                                    borderRadius: 4,
+                                    background: "#e0f2f1",
+                                    color: "#00695c",
+                                    border: "1px solid #80cbc4",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Disematkan
+                                </span>
+                              )}
+                              <span className="ph-pop-comment-time">
+                                {timeAgo(c.created_at)}
+                              </span>
+                            </div>
+                            <p className="ph-pop-comment-text">{c.body}</p>
+                          </div>
+                        </div>
+                      ))
                     )}
-                    <a
-                      href={`/forum?app=${app.slug}`}
-                      className="ph-pop-forum-link"
+
+                    {/* Comment input */}
+                    <div
+                      style={{
+                        borderTop: "1px solid #e8e0d4",
+                        paddingTop: 14,
+                        marginTop: 4,
+                      }}
                     >
-                      Lihat semua diskusi →
-                    </a>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 10,
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <textarea
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            placeholder="Tulis komentar atau pertanyaan..."
+                            maxLength={500}
+                            rows={2}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && (e.ctrlKey || e.metaKey))
+                                handleSubmitComment();
+                            }}
+                            style={{
+                              width: "100%",
+                              boxSizing: "border-box",
+                              padding: "8px 10px",
+                              borderRadius: 8,
+                              border: "1px solid #d9d1c2",
+                              fontSize: 13,
+                              color: "#29405f",
+                              resize: "none",
+                              fontFamily: "inherit",
+                              background: "#fff",
+                              outline: "none",
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="cta-button"
+                          style={{
+                            height: 34,
+                            fontSize: 12,
+                            padding: "0 14px",
+                            flexShrink: 0,
+                            marginTop: 2,
+                          }}
+                          onClick={handleSubmitComment}
+                          disabled={submittingComment || !commentText.trim()}
+                        >
+                          {submittingComment ? "..." : "Kirim"}
+                        </button>
+                      </div>
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: "#7b8594",
+                          margin: "4px 0 0",
+                        }}
+                      >
+                        Ctrl+Enter untuk kirim cepat
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -996,7 +1550,7 @@ export default function RetroPopover({
                     {app.built_with.length > 0 && (
                       <div className="ph-pop-built-with">
                         <span className="ph-pop-sidebar-eyebrow">
-                          DIBANGUN DENGAN
+                          Dibangun dengan
                         </span>
                         <div className="ph-pop-built-chips">
                           {app.built_with.map((t) => (
@@ -1025,47 +1579,210 @@ export default function RetroPopover({
 
                 {/* LAINNYA TAB */}
                 {activeTab === "lainnya" && (
-                  <div className="ph-pop-lainnya">
-                    {app.is_open_source && (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          padding: "4px 10px",
-                          borderRadius: 6,
-                          background: "#e8f5e9",
-                          color: "#2e7d32",
-                          border: "1px solid #a5d6a7",
-                          fontSize: 13,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Open Source
-                      </span>
-                    )}
-                    {pricingBadge(app.pricing_type) &&
-                      (() => {
-                        const b = pricingBadge(app.pricing_type);
-                        return (
-                          <div style={{ marginTop: 12 }}>
-                            <span className="ph-pop-sidebar-eyebrow">
-                              HARGA
-                            </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 20,
+                    }}
+                  >
+                    {/* Tech stack */}
+                    {app.built_with?.length > 0 && (
+                      <div>
+                        <p
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#7b8594",
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                            margin: "0 0 8px",
+                          }}
+                        >
+                          Dibangun dengan
+                        </p>
+                        <div
+                          style={{ display: "flex", flexWrap: "wrap", gap: 6 }}
+                        >
+                          {app.built_with.map((t) => (
                             <span
-                              className="ph-pop-pricing-badge"
+                              key={t}
                               style={{
-                                background: b.bg,
-                                color: b.color,
-                                border: `1px solid ${b.border}`,
-                                display: "inline-flex",
-                                marginLeft: 8,
+                                padding: "4px 10px",
+                                borderRadius: 6,
+                                border: "1px solid #d9d1c2",
+                                background: "#f5f2ec",
+                                color: "#374352",
+                                fontSize: 12,
+                                fontWeight: 600,
                               }}
                             >
-                              {b.label}
+                              {t}
                             </span>
-                          </div>
-                        );
-                      })()}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Pricing */}
+                    {(() => {
+                      const b = pricingBadge(app.pricing_type);
+                      return b ? (
+                        <div>
+                          <p
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#7b8594",
+                              letterSpacing: "0.07em",
+                              textTransform: "uppercase",
+                              margin: "0 0 8px",
+                            }}
+                          >
+                            Model harga
+                          </p>
+                          <span
+                            className="ph-pop-pricing-badge"
+                            style={{
+                              background: b.bg,
+                              color: b.color,
+                              border: `1px solid ${b.border}`,
+                            }}
+                          >
+                            {b.label}
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Open source */}
+                    <div>
+                      <p
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#7b8594",
+                          letterSpacing: "0.07em",
+                          textTransform: "uppercase",
+                          margin: "0 0 8px",
+                        }}
+                      >
+                        Open source
+                      </p>
+                      {app.is_open_source ? (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            background: "#e8f5e9",
+                            color: "#2e7d32",
+                            border: "1px solid #a5d6a7",
+                            fontSize: 12,
+                            fontWeight: 600,
+                          }}
+                        >
+                          ✓ Ya, open source
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 13, color: "#7b8594" }}>
+                          Tidak / belum diketahui
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Launch info */}
+                    <div>
+                      <p
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#7b8594",
+                          letterSpacing: "0.07em",
+                          textTransform: "uppercase",
+                          margin: "0 0 8px",
+                        }}
+                      >
+                        Tanggal launch
+                      </p>
+                      <span style={{ fontSize: 13, color: "#29405f" }}>
+                        {app.launch_date
+                          ? new Date(app.launch_date).toLocaleDateString(
+                              "id-ID",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              },
+                            )
+                          : "Belum diketahui"}
+                      </span>
+                    </div>
+
+                    {/* Website */}
+                    {app.website_url && (
+                      <div>
+                        <p
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#7b8594",
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                            margin: "0 0 8px",
+                          }}
+                        >
+                          Website
+                        </p>
+                        <a
+                          href={app.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            fontSize: 13,
+                            color: "#29405f",
+                            textDecoration: "none",
+                          }}
+                        >
+                          <IcoExternal />
+                          {app.website_url
+                            .replace(/^https?:\/\//, "")
+                            .replace(/\/$/, "")}
+                        </a>
+                      </div>
+                    )}
+
+                    {/* Tags */}
+                    {app.launch_tags?.length > 0 && (
+                      <div>
+                        <p
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#7b8594",
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                            margin: "0 0 8px",
+                          }}
+                        >
+                          Kategori
+                        </p>
+                        <div
+                          style={{ display: "flex", flexWrap: "wrap", gap: 6 }}
+                        >
+                          {app.launch_tags.map((t) => (
+                            <span key={t} className="ph-pop-tag-chip">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1105,6 +1822,7 @@ export default function RetroPopover({
 
               {/* Save to collection */}
               <button
+                type="button"
                 className={"ph-pop-sidebar-action" + (saved ? " active" : "")}
                 onClick={() => setSaved((s) => !s)}
               >
@@ -1113,6 +1831,7 @@ export default function RetroPopover({
 
               {/* Share */}
               <button
+                type="button"
                 className="ph-pop-sidebar-action"
                 onClick={() =>
                   navigator.share?.({
@@ -1128,7 +1847,7 @@ export default function RetroPopover({
 
               {/* Info Perusahaan */}
               <div className="ph-pop-sidebar-section">
-                <span className="ph-pop-sidebar-eyebrow">INFO PERUSAHAAN</span>
+                <span className="ph-pop-sidebar-eyebrow">Info perusahaan</span>
                 {app.website_url && (
                   <a
                     href={app.website_url}
@@ -1175,7 +1894,7 @@ export default function RetroPopover({
 
               {/* Info Peluncuran */}
               <div className="ph-pop-sidebar-section">
-                <span className="ph-pop-sidebar-eyebrow">INFO PELUNCURAN</span>
+                <span className="ph-pop-sidebar-eyebrow">Info peluncuran</span>
                 {(app.launch_date || app.created_at) && (
                   <div className="ph-pop-sidebar-row">
                     Diluncurkan tahun{" "}
@@ -1193,7 +1912,7 @@ export default function RetroPopover({
               {/* Sosial */}
               {(app.twitter_handle || app.instagram_handle) && (
                 <div className="ph-pop-sidebar-section">
-                  <span className="ph-pop-sidebar-eyebrow">SOSIAL</span>
+                  <span className="ph-pop-sidebar-eyebrow">Sosial</span>
                   {app.twitter_handle && (
                     <a
                       href={`https://twitter.com/${app.twitter_handle}`}
