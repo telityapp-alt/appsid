@@ -434,6 +434,12 @@ export default function RetroPopover({
   const [submittingReview, setSubmittingReview] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
 
+  // Report modal state
+  const [reportTarget, setReportTarget] = useState(null); // { type: 'review'|'comment', id, label }
+  const [reportReason, setReportReason] = useState("");
+  const [reportDetail, setReportDetail] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
+
   // Forum / comments state
   const [liveComments, setLiveComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -641,6 +647,73 @@ export default function RetroPopover({
     });
   }
 
+  async function handleDeleteComment(commentId) {
+    if (!window.confirm("Hapus komentar ini?")) return;
+    try {
+      const { error } = await supabase
+        .from("app_comments")
+        .delete()
+        .eq("id", commentId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setLiveComments((prev) => prev.filter((c) => c.id !== commentId));
+      showToast("Komentar dihapus.", "success");
+    } catch (err) {
+      showToast(err.message ?? "Gagal menghapus komentar.", "error");
+    }
+  }
+
+  async function handleDeleteReview(reviewId) {
+    if (!window.confirm("Hapus ulasan ini?")) return;
+    try {
+      const { error } = await supabase
+        .from("app_reviews")
+        .delete()
+        .eq("id", reviewId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      showToast("Ulasan dihapus.", "success");
+    } catch (err) {
+      showToast(err.message ?? "Gagal menghapus ulasan.", "error");
+    }
+  }
+
+  async function handleSubmitReport() {
+    requireAuth(async () => {
+      if (!reportReason || !reportTarget) return;
+      setSubmittingReport(true);
+      try {
+        const { error } = await supabase.from("app_reports").insert({
+          reporter_id: user.id,
+          target_type: reportTarget.type,
+          target_id: reportTarget.id,
+          reason: reportReason,
+          detail: reportDetail.trim() || null,
+        });
+        if (error) {
+          if (error.code === "23505") {
+            showToast("Kamu sudah melaporkan konten ini.", "info");
+          } else {
+            throw error;
+          }
+        } else {
+          showToast(
+            "Laporan berhasil dikirim. Tim kami akan meninjau.",
+            "success",
+          );
+        }
+        setReportTarget(null);
+        setReportReason("");
+        setReportDetail("");
+      } catch (err) {
+        showToast(err.message ?? "Gagal mengirim laporan.", "error");
+      } finally {
+        setSubmittingReport(false);
+      }
+    });
+  }
+
   // Submit comment
   async function handleSubmitComment() {
     requireAuth(async () => {
@@ -755,770 +828,637 @@ export default function RetroPopover({
   const handleClose = useCallback(() => onClose(), [onClose]);
 
   return (
-    <div className="retro-backdrop" onClick={handleClose}>
-      <div
-        className="retro-window pop-window"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* ── TITLE BAR ──────────────────────────────────────────── */}
-        <div className="retro-titlebar">
-          <div className="retro-titlebar-left">
-            <div className="pop-dots">
+    <>
+      <div className="retro-backdrop" onClick={handleClose}>
+        <div
+          className="retro-window pop-window"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* ── TITLE BAR ──────────────────────────────────────────── */}
+          <div className="retro-titlebar">
+            <div className="retro-titlebar-left">
+              <div className="pop-dots">
+                <button
+                  type="button"
+                  className="pop-dot pop-dot-close"
+                  onClick={handleClose}
+                  aria-label="Tutup"
+                />
+                <button
+                  type="button"
+                  className="pop-dot pop-dot-min"
+                  aria-label="Minimise"
+                />
+                <button
+                  type="button"
+                  className="pop-dot pop-dot-max"
+                  aria-label="Maximise"
+                />
+              </div>
+            </div>
+            <div className="retro-titlebar-center pop-tb-center">
+              <span className="pop-tb-brand">AppVerse</span>
+              <span className="pop-tb-sep">—</span>
+              <span className="pop-tb-name">{app.name}</span>
+            </div>
+            <div
+              className="retro-titlebar-right"
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
+            >
+              {/* upvote button in titlebar — wired to useUpvote hook */}
               <button
                 type="button"
-                className="pop-dot pop-dot-close"
+                style={{ ...S.tbUpvote, ...(upvoted ? S.tbUpvoteActive : {}) }}
+                onClick={handleUpvote}
+                aria-label={`Upvote ${app.name}, total ${upvotes}`}
+                aria-pressed={upvoted}
+                disabled={upvoteLoading}
+              >
+                <IcoTriangle filled={upvoted} />
+                {upvotes}
+              </button>
+              <button
+                type="button"
+                className="pop-close-x"
                 onClick={handleClose}
                 aria-label="Tutup"
-              />
-              <button
-                type="button"
-                className="pop-dot pop-dot-min"
-                aria-label="Minimise"
-              />
-              <button
-                type="button"
-                className="pop-dot pop-dot-max"
-                aria-label="Maximise"
-              />
+              >
+                <svg
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  style={{ width: 13, height: 13 }}
+                >
+                  <path d="M1 1l12 12M13 1L1 13" />
+                </svg>
+              </button>
             </div>
           </div>
-          <div className="retro-titlebar-center pop-tb-center">
-            <span className="pop-tb-brand">AppVerse</span>
-            <span className="pop-tb-sep">—</span>
-            <span className="pop-tb-name">{app.name}</span>
-          </div>
-          <div
-            className="retro-titlebar-right"
-            style={{ display: "flex", alignItems: "center", gap: 8 }}
-          >
-            {/* upvote button in titlebar — wired to useUpvote hook */}
-            <button
-              type="button"
-              style={{ ...S.tbUpvote, ...(upvoted ? S.tbUpvoteActive : {}) }}
-              onClick={handleUpvote}
-              aria-label={`Upvote ${app.name}, total ${upvotes}`}
-              aria-pressed={upvoted}
-              disabled={upvoteLoading}
-            >
-              <IcoTriangle filled={upvoted} />
-              {upvotes}
-            </button>
-            <button
-              type="button"
-              className="pop-close-x"
-              onClick={handleClose}
-              aria-label="Tutup"
-            >
-              <svg
-                viewBox="0 0 14 14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                style={{ width: 13, height: 13 }}
-              >
-                <path d="M1 1l12 12M13 1L1 13" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        {/* ── SCROLLABLE BODY ───────────────────────────────────────────── */}
-        <div className="pop-scroll">
-          <div className="ph-pop-layout">
-            {/* LEFT COLUMN */}
-            <div className="ph-pop-main">
-              {/* SECTION A — Hero Header */}
-              <div className="ph-pop-hero">
-                <div className="ph-pop-logo-wrap">
-                  {app.logo_url ? (
-                    <img
-                      src={app.logo_url}
-                      alt={app.name}
-                      className="ph-pop-logo"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        e.currentTarget.nextSibling.style.display = "flex";
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="ph-pop-logo-fallback"
-                    style={{ display: app.logo_url ? "none" : "flex" }}
-                  >
-                    {app.name?.charAt(0)}
-                  </div>
-                </div>
-                <div className="ph-pop-hero-body">
-                  <div className="ph-pop-hero-top">
-                    <h1 className="ph-pop-app-name">{app.name}</h1>
-                    {isLaunchingToday(app.launch_date) && (
-                      <span className="ph-pop-today-badge">
-                        🚀 Launching Today
-                      </span>
-                    )}
-                    {app.website_url && (
-                      <a
-                        href={app.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ph-pop-website-link"
-                        aria-label="Buka website"
-                      >
-                        <IcoExternal />
-                      </a>
-                    )}
-                  </div>
-                  <p className="ph-pop-tagline">{app.tagline}</p>
-                  <div className="ph-pop-meta-row">
-                    <StarRating
-                      rating={app.rating ?? 0}
-                      count={app.reviews_count}
-                    />
-                    {app.upvotes_count > 0 && (
-                      <span className="ph-pop-meta-item">
-                        <IcoTriangle filled /> {app.upvotes_count} upvote
-                      </span>
-                    )}
-                    {app.status && (
-                      <span className="ph-pop-status-chip">{app.status}</span>
-                    )}
-                  </div>
-                  <div className="ph-pop-hero-actions">
-                    {app.website_url && (
-                      <a
-                        href={app.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ph-pop-cta-btn"
-                      >
-                        Kunjungi Website <IcoExternal />
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      className={`ph-pop-follow-btn${following ? " active" : ""}`}
-                      onClick={handleFollow}
-                      aria-pressed={following}
-                      aria-label={
-                        following
-                          ? `Berhenti mengikuti ${app.name}`
-                          : `Ikuti ${app.name}`
-                      }
-                      disabled={followLoading}
-                    >
-                      {following ? "Mengikuti ✓" : "Ikuti"}
-                      {followCount > 0 && (
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: "inherit",
-                            opacity: 0.75,
-                            marginLeft: 5,
-                          }}
-                        >
-                          {followCount}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                  {app.launch_tags.length > 0 && (
-                    <div className="ph-pop-tags-row">
-                      {app.launch_tags.map((t) => (
-                        <span key={t} className="ph-pop-tag-chip">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* SECTION B — Description */}
-              <div className="ph-pop-desc">
-                <div
-                  style={{
-                    overflow: "hidden",
-                    maxHeight: showFullDesc ? "2000px" : "4.5em",
-                    transition: "max-height 300ms ease",
-                  }}
-                >
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: 14,
-                      color: "#374352",
-                      lineHeight: 1.65,
-                      ...(showFullDesc
-                        ? {}
-                        : {
-                            display: "-webkit-box",
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                          }),
-                    }}
-                  >
-                    {app.description || app.tagline}
-                  </p>
-                </div>
-                {(app.description || app.tagline || "").length > 200 && (
-                  <button
-                    onClick={() => setShowFullDesc((v) => !v)}
-                    style={{
-                      fontSize: 13,
-                      color: "#f6a61e",
-                      fontWeight: 700,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "4px 0",
-                    }}
-                  >
-                    {showFullDesc ? "tutup ↑" : "lihat selengkapnya ↓"}
-                  </button>
-                )}
-              </div>
-
-              {/* SECTION C — Nav Tabs */}
-              <nav className="ph-pop-tabs" role="tablist">
-                {[
-                  { label: "Overview", value: "overview" },
-                  {
-                    label: `Ulasan (${reviewsLoading ? app.reviews_count : reviews.length})`,
-                    value: "ulasan",
-                  },
-                  {
-                    label: `Forum (${commentsLoading ? "…" : liveComments.length})`,
-                    value: "forum",
-                  },
-                  { label: "Tim", value: "tim" },
-                  { label: "Lainnya", value: "lainnya" },
-                ].map((tab) => (
-                  <button
-                    key={tab.value}
-                    role="tab"
-                    aria-selected={activeTab === tab.value}
-                    tabIndex={activeTab === tab.value ? 0 : -1}
-                    className={
-                      "ph-pop-tab" + (activeTab === tab.value ? " active" : "")
-                    }
-                    onClick={() => {
-                      setTabVisible(false);
-                      setTimeout(() => {
-                        setActiveTab(tab.value);
-                        setTabVisible(true);
-                      }, 100);
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
-
-              {/* TAB PANELS */}
-              <div
-                className="ph-pop-tab-panel"
-                style={{
-                  opacity: tabVisible ? 1 : 0,
-                  transition: "opacity 150ms ease",
-                }}
-              >
-                {/* OVERVIEW TAB */}
-                {activeTab === "overview" && (
-                  <div>
-                    {gallery.length > 0 && (
-                      <div
-                        className="ph-pop-gallery"
-                        onMouseEnter={() => {
-                          hoverRef.current = true;
-                          clearInterval(autoRef.current);
-                        }}
-                        onMouseLeave={() => {
-                          hoverRef.current = false;
-                          if (gallery.length > 1) {
-                            autoRef.current = setInterval(
-                              () =>
-                                setGallerySlide(
-                                  (s) => (s + 1) % gallery.length,
-                                ),
-                              3500,
-                            );
-                          }
-                        }}
-                      >
-                        <div className="ph-pop-gallery-main">
-                          <img
-                            key={gallerySlide}
-                            src={gallery[gallerySlide]}
-                            alt={`Tampilan ${gallerySlide + 1}`}
-                            className="ph-pop-gallery-img"
-                          />
-                          {gallery.length > 1 && (
-                            <>
-                              <button
-                                className="ph-pop-gallery-arrow left"
-                                onClick={prevG}
-                                aria-label="Sebelumnya"
-                              >
-                                <IcoChevLeft />
-                              </button>
-                              <button
-                                className="ph-pop-gallery-arrow right"
-                                onClick={nextG}
-                                aria-label="Selanjutnya"
-                              >
-                                <IcoChevRight />
-                              </button>
-                              <span className="ph-pop-gallery-counter">
-                                {gallerySlide + 1} / {gallery.length}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        {gallery.length > 1 && (
-                          <div className="ph-pop-gallery-dots">
-                            {gallery.map((_, i) => (
-                              <button
-                                key={i}
-                                className={
-                                  "ph-pop-gallery-dot" +
-                                  (i === gallerySlide ? " active" : "")
-                                }
-                                onClick={() => {
-                                  clearInterval(autoRef.current);
-                                  setGallerySlide(i);
-                                }}
-                                aria-label={`Gambar ${i + 1}`}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <div className="ph-pop-pricing-row">
-                      {(() => {
-                        const b = pricingBadge(app.pricing_type);
-                        return b ? (
-                          <span
-                            className="ph-pop-pricing-badge"
-                            style={{
-                              background: b.bg,
-                              color: b.color,
-                              border: `1px solid ${b.border}`,
-                            }}
-                          >
-                            {b.label}
-                          </span>
-                        ) : null;
-                      })()}
-                      {app.launch_tags.map((t) => (
-                        <span key={t} className="ph-pop-tag-chip">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ULASAN TAB */}
-                {activeTab === "ulasan" && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 20,
-                    }}
-                  >
-                    {/* Write review form */}
-                    <div
-                      style={{
-                        padding: "16px",
-                        borderRadius: 10,
-                        border: "1px solid #d9d1c2",
-                        background: "#fffdf8",
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "#0d1d38",
-                          margin: "0 0 10px",
-                          letterSpacing: "-0.02em",
-                        }}
-                      >
-                        Tulis ulasan
-                      </p>
-                      {/* Star picker */}
-                      <div
-                        style={{ display: "flex", gap: 4, marginBottom: 10 }}
-                      >
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <button
-                            key={n}
-                            type="button"
-                            onClick={() => setMyRating(n)}
-                            onMouseEnter={() => setHoverRating(n)}
-                            onMouseLeave={() => setHoverRating(0)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 2,
-                              fontSize: 22,
-                              color:
-                                n <= (hoverRating || myRating)
-                                  ? "#f6a61e"
-                                  : "#d9d1c2",
-                              transition: "color 120ms ease",
-                            }}
-                            aria-label={`${n} bintang`}
-                          >
-                            ★
-                          </button>
-                        ))}
-                        {myRating > 0 && (
-                          <span
-                            style={{
-                              fontSize: 12,
-                              color: "#7b8594",
-                              alignSelf: "center",
-                              marginLeft: 4,
-                            }}
-                          >
-                            {
-                              [
-                                "",
-                                "Buruk",
-                                "Kurang",
-                                "Cukup",
-                                "Bagus",
-                                "Luar biasa",
-                              ][myRating]
-                            }
-                          </span>
-                        )}
-                      </div>
-                      <textarea
-                        value={myReviewText}
-                        onChange={(e) => setMyReviewText(e.target.value)}
-                        placeholder="Ceritakan pengalamanmu dengan app ini..."
-                        maxLength={500}
-                        rows={3}
-                        style={{
-                          width: "100%",
-                          boxSizing: "border-box",
-                          padding: "8px 10px",
-                          borderRadius: 8,
-                          border: "1px solid #d9d1c2",
-                          fontSize: 13,
-                          color: "#29405f",
-                          resize: "vertical",
-                          fontFamily: "inherit",
-                          background: "#fff",
-                          outline: "none",
+          {/* ── SCROLLABLE BODY ───────────────────────────────────────────── */}
+          <div className="pop-scroll">
+            <div className="ph-pop-layout">
+              {/* LEFT COLUMN */}
+              <div className="ph-pop-main">
+                {/* SECTION A — Hero Header */}
+                <div className="ph-pop-hero">
+                  <div className="ph-pop-logo-wrap">
+                    {app.logo_url ? (
+                      <img
+                        src={app.logo_url}
+                        alt={app.name}
+                        className="ph-pop-logo"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          e.currentTarget.nextSibling.style.display = "flex";
                         }}
                       />
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginTop: 8,
-                        }}
-                      >
-                        <span style={{ fontSize: 11, color: "#7b8594" }}>
-                          {myReviewText.length}/500
-                        </span>
-                        <button
-                          type="button"
-                          className="cta-button"
-                          style={{
-                            height: 30,
-                            fontSize: 12,
-                            padding: "0 14px",
-                          }}
-                          onClick={handleSubmitReview}
-                          disabled={submittingReview}
-                        >
-                          {submittingReview ? "Mengirim..." : "Kirim ulasan"}
-                        </button>
-                      </div>
+                    ) : null}
+                    <div
+                      className="ph-pop-logo-fallback"
+                      style={{ display: app.logo_url ? "none" : "flex" }}
+                    >
+                      {app.name?.charAt(0)}
                     </div>
-
-                    {/* Reviews list */}
-                    {reviewsLoading ? (
-                      <p
-                        style={{
-                          color: "#7b8594",
-                          fontSize: 13,
-                          textAlign: "center",
-                          padding: "16px 0",
-                        }}
-                      >
-                        Memuat ulasan...
-                      </p>
-                    ) : reviews.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: "24px 0" }}>
-                        <p
-                          style={{ fontSize: 14, color: "#7b8594", margin: 0 }}
+                  </div>
+                  <div className="ph-pop-hero-body">
+                    <div className="ph-pop-hero-top">
+                      <h1 className="ph-pop-app-name">{app.name}</h1>
+                      {isLaunchingToday(app.launch_date) && (
+                        <span className="ph-pop-today-badge">
+                          🚀 Launching today
+                        </span>
+                      )}
+                      {app.website_url && (
+                        <a
+                          href={app.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ph-pop-website-link"
+                          aria-label="Buka website"
                         >
-                          Belum ada ulasan. Jadilah yang pertama!
-                        </p>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 12,
-                        }}
+                          <IcoExternal />
+                        </a>
+                      )}
+                    </div>
+                    <p className="ph-pop-tagline">{app.tagline}</p>
+                    <div className="ph-pop-meta-row">
+                      <StarRating
+                        rating={app.rating ?? 0}
+                        count={app.reviews_count}
+                      />
+                      {app.upvotes_count > 0 && (
+                        <span className="ph-pop-meta-item">
+                          <IcoTriangle filled /> {app.upvotes_count} upvote
+                        </span>
+                      )}
+                      {app.status && (
+                        <span className="ph-pop-status-chip">{app.status}</span>
+                      )}
+                    </div>
+                    <div className="ph-pop-hero-actions">
+                      {app.website_url && (
+                        <a
+                          href={app.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ph-pop-cta-btn"
+                        >
+                          Kunjungi Website <IcoExternal />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        className={`ph-pop-follow-btn${following ? " active" : ""}`}
+                        onClick={handleFollow}
+                        aria-pressed={following}
+                        aria-label={
+                          following
+                            ? `Berhenti mengikuti ${app.name}`
+                            : `Ikuti ${app.name}`
+                        }
+                        disabled={followLoading}
                       >
-                        {reviews.map((r, i) => (
-                          <div
-                            key={r.id ?? i}
+                        {following ? "Mengikuti ✓" : "Ikuti"}
+                        {followCount > 0 && (
+                          <span
                             style={{
-                              padding: "12px 14px",
-                              borderRadius: 10,
-                              border: "1px solid #d9d1c2",
-                              background: "#fffdf8",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: "inherit",
+                              opacity: 0.75,
+                              marginLeft: 5,
                             }}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                marginBottom: 6,
-                              }}
-                            >
-                              <Avatar
-                                src={r.profiles?.avatar_url}
-                                name={r.profiles?.full_name ?? "Pengguna"}
-                                size={28}
-                              />
-                              <strong
-                                style={{ fontSize: 13, color: "#0d1d38" }}
-                              >
-                                {r.profiles?.full_name ?? "Pengguna"}
-                              </strong>
-                              <div
-                                style={{
-                                  marginLeft: "auto",
-                                  display: "flex",
-                                  gap: 2,
-                                }}
-                              >
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                  <span
-                                    key={n}
-                                    style={{
-                                      fontSize: 13,
-                                      color:
-                                        n <= r.rating ? "#f6a61e" : "#d9d1c2",
-                                    }}
-                                  >
-                                    ★
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            {r.body && (
-                              <p
-                                style={{
-                                  fontSize: 13,
-                                  color: "#29405f",
-                                  margin: 0,
-                                  lineHeight: 1.5,
-                                }}
-                              >
-                                {r.body}
-                              </p>
-                            )}
-                            <p
-                              style={{
-                                fontSize: 11,
-                                color: "#7b8594",
-                                margin: "6px 0 0",
-                              }}
-                            >
-                              {timeAgo(r.created_at)}
-                            </p>
-                          </div>
+                            {followCount}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                    {app.launch_tags.length > 0 && (
+                      <div className="ph-pop-tags-row">
+                        {app.launch_tags.map((t) => (
+                          <span key={t} className="ph-pop-tag-chip">
+                            {t}
+                          </span>
                         ))}
                       </div>
                     )}
                   </div>
-                )}
+                </div>
 
-                {/* FORUM TAB */}
-                {activeTab === "forum" && (
+                {/* SECTION B — Description */}
+                <div className="ph-pop-desc">
                   <div
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 16,
+                      overflow: "hidden",
+                      maxHeight: showFullDesc ? "2000px" : "4.5em",
+                      transition: "max-height 300ms ease",
                     }}
                   >
-                    {/* First comment (maker's intro) */}
-                    {app.first_comment && (
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 14,
+                        color: "#374352",
+                        lineHeight: 1.65,
+                        ...(showFullDesc
+                          ? {}
+                          : {
+                              display: "-webkit-box",
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }),
+                      }}
+                    >
+                      {app.description || app.tagline}
+                    </p>
+                  </div>
+                  {(app.description || app.tagline || "").length > 200 && (
+                    <button
+                      onClick={() => setShowFullDesc((v) => !v)}
+                      style={{
+                        fontSize: 13,
+                        color: "#f6a61e",
+                        fontWeight: 700,
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px 0",
+                      }}
+                    >
+                      {showFullDesc ? "tutup ↑" : "lihat selengkapnya ↓"}
+                    </button>
+                  )}
+                </div>
+
+                {/* SECTION C — Nav Tabs */}
+                <nav className="ph-pop-tabs" role="tablist">
+                  {[
+                    { label: "Overview", value: "overview" },
+                    {
+                      label: `Ulasan (${reviewsLoading ? app.reviews_count : reviews.length})`,
+                      value: "ulasan",
+                    },
+                    {
+                      label: `Forum (${commentsLoading ? "…" : liveComments.length})`,
+                      value: "forum",
+                    },
+                    { label: "Tim", value: "tim" },
+                    { label: "Lainnya", value: "lainnya" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.value}
+                      role="tab"
+                      aria-selected={activeTab === tab.value}
+                      tabIndex={activeTab === tab.value ? 0 : -1}
+                      className={
+                        "ph-pop-tab" +
+                        (activeTab === tab.value ? " active" : "")
+                      }
+                      onClick={() => {
+                        setTabVisible(false);
+                        setTimeout(() => {
+                          setActiveTab(tab.value);
+                          setTabVisible(true);
+                        }, 100);
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </nav>
+
+                {/* TAB PANELS */}
+                <div
+                  className="ph-pop-tab-panel"
+                  style={{
+                    opacity: tabVisible ? 1 : 0,
+                    transition: "opacity 150ms ease",
+                  }}
+                >
+                  {/* OVERVIEW TAB */}
+                  {activeTab === "overview" && (
+                    <div>
+                      {gallery.length > 0 && (
+                        <div
+                          className="ph-pop-gallery"
+                          onMouseEnter={() => {
+                            hoverRef.current = true;
+                            clearInterval(autoRef.current);
+                          }}
+                          onMouseLeave={() => {
+                            hoverRef.current = false;
+                            if (gallery.length > 1) {
+                              autoRef.current = setInterval(
+                                () =>
+                                  setGallerySlide(
+                                    (s) => (s + 1) % gallery.length,
+                                  ),
+                                3500,
+                              );
+                            }
+                          }}
+                        >
+                          <div className="ph-pop-gallery-main">
+                            <img
+                              key={gallerySlide}
+                              src={gallery[gallerySlide]}
+                              alt={`Tampilan ${gallerySlide + 1}`}
+                              className="ph-pop-gallery-img"
+                            />
+                            {gallery.length > 1 && (
+                              <>
+                                <button
+                                  className="ph-pop-gallery-arrow left"
+                                  onClick={prevG}
+                                  aria-label="Sebelumnya"
+                                >
+                                  <IcoChevLeft />
+                                </button>
+                                <button
+                                  className="ph-pop-gallery-arrow right"
+                                  onClick={nextG}
+                                  aria-label="Selanjutnya"
+                                >
+                                  <IcoChevRight />
+                                </button>
+                                <span className="ph-pop-gallery-counter">
+                                  {gallerySlide + 1} / {gallery.length}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          {gallery.length > 1 && (
+                            <div className="ph-pop-gallery-dots">
+                              {gallery.map((_, i) => (
+                                <button
+                                  key={i}
+                                  className={
+                                    "ph-pop-gallery-dot" +
+                                    (i === gallerySlide ? " active" : "")
+                                  }
+                                  onClick={() => {
+                                    clearInterval(autoRef.current);
+                                    setGallerySlide(i);
+                                  }}
+                                  aria-label={`Gambar ${i + 1}`}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="ph-pop-pricing-row">
+                        {(() => {
+                          const b = pricingBadge(app.pricing_type);
+                          return b ? (
+                            <span
+                              className="ph-pop-pricing-badge"
+                              style={{
+                                background: b.bg,
+                                color: b.color,
+                                border: `1px solid ${b.border}`,
+                              }}
+                            >
+                              {b.label}
+                            </span>
+                          ) : null;
+                        })()}
+                        {app.launch_tags.map((t) => (
+                          <span key={t} className="ph-pop-tag-chip">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ULASAN TAB */}
+                  {activeTab === "ulasan" && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 20,
+                      }}
+                    >
+                      {/* Write review form */}
                       <div
                         style={{
-                          padding: "12px 14px",
+                          padding: "16px",
                           borderRadius: 10,
                           border: "1px solid #d9d1c2",
                           background: "#fffdf8",
-                          borderLeft: "3px solid #f6a61e",
                         }}
                       >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            marginBottom: 6,
-                          }}
-                        >
-                          <Avatar
-                            src={app.app_makers?.[0]?.avatar_url}
-                            name={app.app_makers?.[0]?.name ?? "Maker"}
-                            size={32}
-                          />
-                          <div>
-                            <strong
-                              style={{
-                                fontSize: 13,
-                                color: "#0d1d38",
-                                display: "block",
-                              }}
-                            >
-                              {app.app_makers?.[0]?.name ?? "Maker"}
-                            </strong>
-                            <span style={{ fontSize: 11, color: "#7b8594" }}>
-                              {app.app_makers?.[0]?.role ?? "Pembuat"}
-                            </span>
-                          </div>
-                          <span
-                            style={{
-                              marginLeft: "auto",
-                              fontSize: 11,
-                              padding: "2px 7px",
-                              borderRadius: 4,
-                              background: "#fef3c7",
-                              color: "#92400e",
-                              border: "1px solid #fcd34d",
-                              fontWeight: 600,
-                            }}
-                          >
-                            Maker
-                          </span>
-                        </div>
                         <p
                           style={{
                             fontSize: 13,
-                            color: "#29405f",
-                            margin: 0,
-                            lineHeight: 1.55,
+                            fontWeight: 700,
+                            color: "#0d1d38",
+                            margin: "0 0 10px",
+                            letterSpacing: "-0.02em",
                           }}
                         >
-                          {app.first_comment}
+                          Tulis ulasan
                         </p>
-                      </div>
-                    )}
-
-                    {/* Live comments */}
-                    {commentsLoading ? (
-                      <p
-                        style={{
-                          color: "#7b8594",
-                          fontSize: 13,
-                          textAlign: "center",
-                          padding: "8px 0",
-                        }}
-                      >
-                        Memuat komentar...
-                      </p>
-                    ) : liveComments.length === 0 && !app.first_comment ? (
-                      <p
-                        style={{
-                          color: "#7b8594",
-                          fontSize: 13,
-                          textAlign: "center",
-                          padding: "16px 0",
-                        }}
-                      >
-                        Belum ada diskusi. Mulai percakapan!
-                      </p>
-                    ) : (
-                      // Group: top-level comments + their replies
-                      liveComments
-                        .filter((c) => !c.parent_id)
-                        .map((c, i) => {
-                          const replies = liveComments.filter(
-                            (r) => r.parent_id === c.id,
-                          );
-                          const isReplyingHere = replyingTo?.id === c.id;
-                          return (
-                            <div
-                              key={c.id ?? i}
+                        {/* Star picker */}
+                        <div
+                          style={{ display: "flex", gap: 4, marginBottom: 10 }}
+                        >
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => setMyRating(n)}
+                              onMouseEnter={() => setHoverRating(n)}
+                              onMouseLeave={() => setHoverRating(0)}
                               style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 0,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 2,
+                                fontSize: 22,
+                                color:
+                                  n <= (hoverRating || myRating)
+                                    ? "#f6a61e"
+                                    : "#d9d1c2",
+                                transition: "color 120ms ease",
+                              }}
+                              aria-label={`${n} bintang`}
+                            >
+                              ★
+                            </button>
+                          ))}
+                          {myRating > 0 && (
+                            <span
+                              style={{
+                                fontSize: 12,
+                                color: "#7b8594",
+                                alignSelf: "center",
+                                marginLeft: 4,
                               }}
                             >
-                              {/* Top-level comment */}
-                              <div className="ph-pop-comment">
+                              {
+                                [
+                                  "",
+                                  "Buruk",
+                                  "Kurang",
+                                  "Cukup",
+                                  "Bagus",
+                                  "Luar biasa",
+                                ][myRating]
+                              }
+                            </span>
+                          )}
+                        </div>
+                        <textarea
+                          value={myReviewText}
+                          onChange={(e) => setMyReviewText(e.target.value)}
+                          placeholder="Ceritakan pengalamanmu dengan app ini..."
+                          maxLength={500}
+                          rows={3}
+                          style={{
+                            width: "100%",
+                            boxSizing: "border-box",
+                            padding: "8px 10px",
+                            borderRadius: 8,
+                            border: "1px solid #d9d1c2",
+                            fontSize: 13,
+                            color: "#29405f",
+                            resize: "vertical",
+                            fontFamily: "inherit",
+                            background: "#fff",
+                            outline: "none",
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginTop: 8,
+                          }}
+                        >
+                          <span style={{ fontSize: 11, color: "#7b8594" }}>
+                            {myReviewText.length}/500
+                          </span>
+                          <button
+                            type="button"
+                            className="cta-button"
+                            style={{
+                              height: 30,
+                              fontSize: 12,
+                              padding: "0 14px",
+                            }}
+                            onClick={handleSubmitReview}
+                            disabled={submittingReview}
+                          >
+                            {submittingReview ? "Mengirim..." : "Kirim ulasan"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Reviews list */}
+                      {reviewsLoading ? (
+                        <p
+                          style={{
+                            color: "#7b8594",
+                            fontSize: 13,
+                            textAlign: "center",
+                            padding: "16px 0",
+                          }}
+                        >
+                          Memuat ulasan...
+                        </p>
+                      ) : reviews.length === 0 ? (
+                        <div style={{ textAlign: "center", padding: "24px 0" }}>
+                          <p
+                            style={{
+                              fontSize: 14,
+                              color: "#7b8594",
+                              margin: 0,
+                            }}
+                          >
+                            Belum ada ulasan. Jadilah yang pertama!
+                          </p>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 12,
+                          }}
+                        >
+                          {reviews.map((r, i) => (
+                            <div
+                              key={r.id ?? i}
+                              style={{
+                                padding: "12px 14px",
+                                borderRadius: 10,
+                                border: "1px solid #d9d1c2",
+                                background: "#fffdf8",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  marginBottom: 6,
+                                }}
+                              >
                                 <Avatar
-                                  src={c.profiles?.avatar_url}
-                                  name={c.profiles?.full_name ?? "Pengguna"}
-                                  size={36}
+                                  src={r.profiles?.avatar_url}
+                                  name={r.profiles?.full_name ?? "Pengguna"}
+                                  size={28}
                                 />
-                                <div
-                                  className="ph-pop-comment-body"
-                                  style={{ flex: 1 }}
+                                <strong
+                                  style={{ fontSize: 13, color: "#0d1d38" }}
                                 >
-                                  <div className="ph-pop-comment-meta">
-                                    <strong>
-                                      {c.profiles?.full_name ?? "Pengguna"}
-                                    </strong>
-                                    {c.is_pinned && (
-                                      <span
-                                        style={{
-                                          fontSize: 10,
-                                          padding: "1px 6px",
-                                          borderRadius: 4,
-                                          background: "#e0f2f1",
-                                          color: "#00695c",
-                                          border: "1px solid #80cbc4",
-                                          fontWeight: 600,
-                                        }}
-                                      >
-                                        Disematkan
-                                      </span>
-                                    )}
-                                    <span className="ph-pop-comment-time">
-                                      {timeAgo(c.created_at)}
+                                  {r.profiles?.full_name ?? "Pengguna"}
+                                </strong>
+                                <div
+                                  style={{
+                                    marginLeft: "auto",
+                                    display: "flex",
+                                    gap: 2,
+                                  }}
+                                >
+                                  {[1, 2, 3, 4, 5].map((n) => (
+                                    <span
+                                      key={n}
+                                      style={{
+                                        fontSize: 13,
+                                        color:
+                                          n <= r.rating ? "#f6a61e" : "#d9d1c2",
+                                      }}
+                                    >
+                                      ★
                                     </span>
-                                  </div>
-                                  <p className="ph-pop-comment-text">
-                                    {c.body}
-                                  </p>
+                                  ))}
+                                </div>
+                              </div>
+                              {r.body && (
+                                <p
+                                  style={{
+                                    fontSize: 13,
+                                    color: "#29405f",
+                                    margin: 0,
+                                    lineHeight: 1.5,
+                                  }}
+                                >
+                                  {r.body}
+                                </p>
+                              )}
+                              <p
+                                style={{
+                                  fontSize: 11,
+                                  color: "#7b8594",
+                                  margin: "6px 0 0",
+                                }}
+                              >
+                                {timeAgo(r.created_at)}
+                              </p>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: 8,
+                                  marginTop: 6,
+                                }}
+                              >
+                                {user?.id === r.user_id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteReview(r.id)}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontSize: 11,
+                                      color: "#e53e3e",
+                                      padding: 0,
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Hapus
+                                  </button>
+                                )}
+                                {user?.id !== r.user_id && (
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      if (isReplyingHere) {
-                                        setReplyingTo(null);
-                                        setReplyText("");
-                                      } else {
-                                        setReplyingTo({
-                                          id: c.id,
-                                          name:
-                                            c.profiles?.full_name ?? "Pengguna",
-                                        });
-                                        setReplyText("");
-                                      }
+                                      requireAuth(() =>
+                                        setReportTarget({
+                                          type: "review",
+                                          id: r.id,
+                                          label: "ulasan ini",
+                                        }),
+                                      );
                                     }}
                                     style={{
                                       background: "none",
@@ -1526,329 +1466,593 @@ export default function RetroPopover({
                                       cursor: "pointer",
                                       fontSize: 11,
                                       color: "#7b8594",
-                                      padding: "2px 0",
+                                      padding: 0,
                                       fontWeight: 600,
                                     }}
                                   >
-                                    {isReplyingHere ? "Batal" : "Balas"}
+                                    Laporkan
                                   </button>
-                                </div>
-                              </div>
-
-                              {/* Inline reply input */}
-                              {isReplyingHere && (
-                                <div
-                                  style={{
-                                    marginLeft: 46,
-                                    marginTop: 6,
-                                    display: "flex",
-                                    gap: 8,
-                                    alignItems: "flex-start",
-                                  }}
-                                >
-                                  <div style={{ flex: 1 }}>
-                                    <textarea
-                                      value={replyText}
-                                      onChange={(e) =>
-                                        setReplyText(e.target.value)
-                                      }
-                                      placeholder={`Balas ${replyingTo.name}...`}
-                                      maxLength={500}
-                                      rows={2}
-                                      autoFocus
-                                      onKeyDown={(e) => {
-                                        if (
-                                          e.key === "Enter" &&
-                                          (e.ctrlKey || e.metaKey)
-                                        )
-                                          handleSubmitReply();
-                                      }}
-                                      style={{
-                                        width: "100%",
-                                        boxSizing: "border-box",
-                                        padding: "7px 10px",
-                                        borderRadius: 8,
-                                        border: "1px solid #d9d1c2",
-                                        fontSize: 12,
-                                        color: "#29405f",
-                                        resize: "none",
-                                        fontFamily: "inherit",
-                                        background: "#fff",
-                                        outline: "none",
-                                      }}
-                                    />
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="cta-button"
-                                    style={{
-                                      height: 30,
-                                      fontSize: 11,
-                                      padding: "0 12px",
-                                      flexShrink: 0,
-                                      marginTop: 2,
-                                    }}
-                                    onClick={handleSubmitReply}
-                                    disabled={
-                                      submittingReply || !replyText.trim()
-                                    }
-                                  >
-                                    {submittingReply ? "..." : "Kirim"}
-                                  </button>
-                                </div>
-                              )}
-
-                              {/* Nested replies */}
-                              {replies.length > 0 && (
-                                <div
-                                  style={{
-                                    marginLeft: 46,
-                                    borderLeft: "2px solid #e8e0d4",
-                                    paddingLeft: 12,
-                                    marginTop: 6,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 8,
-                                  }}
-                                >
-                                  {replies.map((r, ri) => (
-                                    <div
-                                      key={r.id ?? ri}
-                                      className="ph-pop-comment"
-                                      style={{ alignItems: "flex-start" }}
-                                    >
-                                      <Avatar
-                                        src={r.profiles?.avatar_url}
-                                        name={
-                                          r.profiles?.full_name ?? "Pengguna"
-                                        }
-                                        size={28}
-                                      />
-                                      <div className="ph-pop-comment-body">
-                                        <div className="ph-pop-comment-meta">
-                                          <strong style={{ fontSize: 12 }}>
-                                            {r.profiles?.full_name ??
-                                              "Pengguna"}
-                                          </strong>
-                                          <span className="ph-pop-comment-time">
-                                            {timeAgo(r.created_at)}
-                                          </span>
-                                        </div>
-                                        <p
-                                          className="ph-pop-comment-text"
-                                          style={{ fontSize: 12 }}
-                                        >
-                                          {r.body}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })
-                    )}
-
-                    {/* Comment input */}
-                    <div
-                      style={{
-                        borderTop: "1px solid #e8e0d4",
-                        paddingTop: 14,
-                        marginTop: 4,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 10,
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        <div style={{ flex: 1 }}>
-                          <textarea
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            placeholder="Tulis komentar atau pertanyaan..."
-                            maxLength={500}
-                            rows={2}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && (e.ctrlKey || e.metaKey))
-                                handleSubmitComment();
-                            }}
-                            style={{
-                              width: "100%",
-                              boxSizing: "border-box",
-                              padding: "8px 10px",
-                              borderRadius: 8,
-                              border: "1px solid #d9d1c2",
-                              fontSize: 13,
-                              color: "#29405f",
-                              resize: "none",
-                              fontFamily: "inherit",
-                              background: "#fff",
-                              outline: "none",
-                            }}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          className="cta-button"
-                          style={{
-                            height: 34,
-                            fontSize: 12,
-                            padding: "0 14px",
-                            flexShrink: 0,
-                            marginTop: 2,
-                          }}
-                          onClick={handleSubmitComment}
-                          disabled={submittingComment || !commentText.trim()}
-                        >
-                          {submittingComment ? "..." : "Kirim"}
-                        </button>
-                      </div>
-                      <p
-                        style={{
-                          fontSize: 11,
-                          color: "#7b8594",
-                          margin: "4px 0 0",
-                        }}
-                      >
-                        Ctrl+Enter untuk kirim cepat
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* TIM TAB */}
-                {activeTab === "tim" && (
-                  <div>
-                    {app.app_makers.length > 0 && (
-                      <div className="ph-pop-team-grid">
-                        {app.app_makers.map((m, i) => (
-                          <div key={m.name ?? i} className="ph-pop-maker-card">
-                            <Avatar
-                              src={m.avatar_url}
-                              name={m.name}
-                              size={48}
-                            />
-                            <div className="ph-pop-maker-info">
-                              <strong className="ph-pop-maker-name">
-                                {m.name}
-                              </strong>
-                              {m.role && (
-                                <span className="ph-pop-maker-role">
-                                  {m.role}
-                                </span>
-                              )}
-                              <div className="ph-pop-maker-links">
-                                {m.website_url && (
-                                  <a
-                                    href={m.website_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="ph-pop-maker-link"
-                                  >
-                                    <IcoExternal />
-                                  </a>
-                                )}
-                                {m.twitter_handle && (
-                                  <a
-                                    href={`https://twitter.com/${m.twitter_handle}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="ph-pop-maker-link"
-                                  >
-                                    <IcoX />
-                                  </a>
                                 )}
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {app.built_with.length > 0 && (
-                      <div className="ph-pop-built-with">
-                        <span className="ph-pop-sidebar-eyebrow">
-                          Dibangun dengan
-                        </span>
-                        <div className="ph-pop-built-chips">
-                          {app.built_with.map((t) => (
-                            <span key={t} className="ph-pop-built-chip">
-                              {t}
-                            </span>
                           ))}
                         </div>
-                      </div>
-                    )}
-                    {app.app_makers.length === 0 &&
-                      app.built_with.length === 0 && (
-                        <p
-                          style={{
-                            color: "#7b8594",
-                            fontSize: 14,
-                            textAlign: "center",
-                            padding: "32px 0",
-                          }}
-                        >
-                          Informasi tim belum tersedia.
-                        </p>
                       )}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                {/* LAINNYA TAB */}
-                {activeTab === "lainnya" && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 20,
-                    }}
-                  >
-                    {/* Tech stack */}
-                    {app.built_with?.length > 0 && (
-                      <div>
-                        <p
+                  {/* FORUM TAB */}
+                  {activeTab === "forum" && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 16,
+                      }}
+                    >
+                      {/* First comment (maker's intro) */}
+                      {app.first_comment && (
+                        <div
                           style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: "#7b8594",
-                            letterSpacing: "0.07em",
-                            textTransform: "uppercase",
-                            margin: "0 0 8px",
+                            padding: "12px 14px",
+                            borderRadius: 10,
+                            border: "1px solid #d9d1c2",
+                            background: "#fffdf8",
+                            borderLeft: "3px solid #f6a61e",
                           }}
                         >
-                          Dibangun dengan
-                        </p>
-                        <div
-                          style={{ display: "flex", flexWrap: "wrap", gap: 6 }}
-                        >
-                          {app.built_with.map((t) => (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              marginBottom: 6,
+                            }}
+                          >
+                            <Avatar
+                              src={app.app_makers?.[0]?.avatar_url}
+                              name={app.app_makers?.[0]?.name ?? "Maker"}
+                              size={32}
+                            />
+                            <div>
+                              <strong
+                                style={{
+                                  fontSize: 13,
+                                  color: "#0d1d38",
+                                  display: "block",
+                                }}
+                              >
+                                {app.app_makers?.[0]?.name ?? "Maker"}
+                              </strong>
+                              <span style={{ fontSize: 11, color: "#7b8594" }}>
+                                {app.app_makers?.[0]?.role ?? "Pembuat"}
+                              </span>
+                            </div>
                             <span
-                              key={t}
                               style={{
-                                padding: "4px 10px",
-                                borderRadius: 6,
-                                border: "1px solid #d9d1c2",
-                                background: "#f5f2ec",
-                                color: "#374352",
-                                fontSize: 12,
+                                marginLeft: "auto",
+                                fontSize: 11,
+                                padding: "2px 7px",
+                                borderRadius: 4,
+                                background: "#fef3c7",
+                                color: "#92400e",
+                                border: "1px solid #fcd34d",
                                 fontWeight: 600,
                               }}
                             >
-                              {t}
+                              Maker
                             </span>
+                          </div>
+                          <p
+                            style={{
+                              fontSize: 13,
+                              color: "#29405f",
+                              margin: 0,
+                              lineHeight: 1.55,
+                            }}
+                          >
+                            {app.first_comment}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Live comments */}
+                      {commentsLoading ? (
+                        <p
+                          style={{
+                            color: "#7b8594",
+                            fontSize: 13,
+                            textAlign: "center",
+                            padding: "8px 0",
+                          }}
+                        >
+                          Memuat komentar...
+                        </p>
+                      ) : liveComments.length === 0 && !app.first_comment ? (
+                        <p
+                          style={{
+                            color: "#7b8594",
+                            fontSize: 13,
+                            textAlign: "center",
+                            padding: "16px 0",
+                          }}
+                        >
+                          Belum ada diskusi. Mulai percakapan!
+                        </p>
+                      ) : (
+                        // Group: top-level comments + their replies
+                        liveComments
+                          .filter((c) => !c.parent_id)
+                          .map((c, i) => {
+                            const replies = liveComments.filter(
+                              (r) => r.parent_id === c.id,
+                            );
+                            const isReplyingHere = replyingTo?.id === c.id;
+                            return (
+                              <div
+                                key={c.id ?? i}
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 0,
+                                }}
+                              >
+                                {/* Top-level comment */}
+                                <div className="ph-pop-comment">
+                                  <Avatar
+                                    src={c.profiles?.avatar_url}
+                                    name={c.profiles?.full_name ?? "Pengguna"}
+                                    size={36}
+                                  />
+                                  <div
+                                    className="ph-pop-comment-body"
+                                    style={{ flex: 1 }}
+                                  >
+                                    <div className="ph-pop-comment-meta">
+                                      <strong>
+                                        {c.profiles?.full_name ?? "Pengguna"}
+                                      </strong>
+                                      {c.is_pinned && (
+                                        <span
+                                          style={{
+                                            fontSize: 10,
+                                            padding: "1px 6px",
+                                            borderRadius: 4,
+                                            background: "#e0f2f1",
+                                            color: "#00695c",
+                                            border: "1px solid #80cbc4",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          Disematkan
+                                        </span>
+                                      )}
+                                      <span className="ph-pop-comment-time">
+                                        {timeAgo(c.created_at)}
+                                      </span>
+                                    </div>
+                                    <p className="ph-pop-comment-text">
+                                      {c.body}
+                                    </p>
+                                    <div
+                                      style={{
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 12,
+                                        marginTop: 4,
+                                      }}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (isReplyingHere) {
+                                            setReplyingTo(null);
+                                            setReplyText("");
+                                          } else {
+                                            setReplyingTo({
+                                              id: c.id,
+                                              name:
+                                                c.profiles?.full_name ??
+                                                "Pengguna",
+                                            });
+                                            setReplyText("");
+                                          }
+                                        }}
+                                        style={{
+                                          background: "none",
+                                          border: "none",
+                                          cursor: "pointer",
+                                          fontSize: 11,
+                                          color: "#7b8594",
+                                          padding: 0,
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        {isReplyingHere ? "Batal" : "Balas"}
+                                      </button>
+                                      {user?.id === c.user_id && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleDeleteComment(c.id)
+                                          }
+                                          style={{
+                                            background: "none",
+                                            border: "none",
+                                            cursor: "pointer",
+                                            fontSize: 11,
+                                            color: "#e53e3e",
+                                            padding: 0,
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          Hapus
+                                        </button>
+                                      )}
+                                      {user?.id !== c.user_id && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            requireAuth(() =>
+                                              setReportTarget({
+                                                type: "comment",
+                                                id: c.id,
+                                                label: "komentar ini",
+                                              }),
+                                            )
+                                          }
+                                          style={{
+                                            background: "none",
+                                            border: "none",
+                                            cursor: "pointer",
+                                            fontSize: 11,
+                                            color: "#7b8594",
+                                            padding: 0,
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          Laporkan
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Inline reply input */}
+                                {isReplyingHere && (
+                                  <div
+                                    style={{
+                                      marginLeft: 46,
+                                      marginTop: 6,
+                                      display: "flex",
+                                      gap: 8,
+                                      alignItems: "flex-start",
+                                    }}
+                                  >
+                                    <div style={{ flex: 1 }}>
+                                      <textarea
+                                        value={replyText}
+                                        onChange={(e) =>
+                                          setReplyText(e.target.value)
+                                        }
+                                        placeholder={`Balas ${replyingTo.name}...`}
+                                        maxLength={500}
+                                        rows={2}
+                                        autoFocus
+                                        onKeyDown={(e) => {
+                                          if (
+                                            e.key === "Enter" &&
+                                            (e.ctrlKey || e.metaKey)
+                                          )
+                                            handleSubmitReply();
+                                        }}
+                                        style={{
+                                          width: "100%",
+                                          boxSizing: "border-box",
+                                          padding: "7px 10px",
+                                          borderRadius: 8,
+                                          border: "1px solid #d9d1c2",
+                                          fontSize: 12,
+                                          color: "#29405f",
+                                          resize: "none",
+                                          fontFamily: "inherit",
+                                          background: "#fff",
+                                          outline: "none",
+                                        }}
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      className="cta-button"
+                                      style={{
+                                        height: 30,
+                                        fontSize: 11,
+                                        padding: "0 12px",
+                                        flexShrink: 0,
+                                        marginTop: 2,
+                                      }}
+                                      onClick={handleSubmitReply}
+                                      disabled={
+                                        submittingReply || !replyText.trim()
+                                      }
+                                    >
+                                      {submittingReply ? "..." : "Kirim"}
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Nested replies */}
+                                {replies.length > 0 && (
+                                  <div
+                                    style={{
+                                      marginLeft: 46,
+                                      borderLeft: "2px solid #e8e0d4",
+                                      paddingLeft: 12,
+                                      marginTop: 6,
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      gap: 8,
+                                    }}
+                                  >
+                                    {replies.map((r, ri) => (
+                                      <div
+                                        key={r.id ?? ri}
+                                        className="ph-pop-comment"
+                                        style={{ alignItems: "flex-start" }}
+                                      >
+                                        <Avatar
+                                          src={r.profiles?.avatar_url}
+                                          name={
+                                            r.profiles?.full_name ?? "Pengguna"
+                                          }
+                                          size={28}
+                                        />
+                                        <div className="ph-pop-comment-body">
+                                          <div className="ph-pop-comment-meta">
+                                            <strong style={{ fontSize: 12 }}>
+                                              {r.profiles?.full_name ??
+                                                "Pengguna"}
+                                            </strong>
+                                            <span className="ph-pop-comment-time">
+                                              {timeAgo(r.created_at)}
+                                            </span>
+                                          </div>
+                                          <p
+                                            className="ph-pop-comment-text"
+                                            style={{ fontSize: 12 }}
+                                          >
+                                            {r.body}
+                                          </p>
+                                          <div
+                                            style={{
+                                              display: "flex",
+                                              flexDirection: "row",
+                                              alignItems: "center",
+                                              gap: 12,
+                                              marginTop: 3,
+                                            }}
+                                          >
+                                            {user?.id === r.user_id && (
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  handleDeleteComment(r.id)
+                                                }
+                                                style={{
+                                                  background: "none",
+                                                  border: "none",
+                                                  cursor: "pointer",
+                                                  fontSize: 11,
+                                                  color: "#e53e3e",
+                                                  padding: 0,
+                                                  fontWeight: 600,
+                                                }}
+                                              >
+                                                Hapus
+                                              </button>
+                                            )}
+                                            {user?.id !== r.user_id && (
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  requireAuth(() =>
+                                                    setReportTarget({
+                                                      type: "comment",
+                                                      id: r.id,
+                                                      label: "balasan ini",
+                                                    }),
+                                                  )
+                                                }
+                                                style={{
+                                                  background: "none",
+                                                  border: "none",
+                                                  cursor: "pointer",
+                                                  fontSize: 11,
+                                                  color: "#7b8594",
+                                                  padding: 0,
+                                                  fontWeight: 600,
+                                                }}
+                                              >
+                                                Laporkan
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                      )}
+
+                      {/* Comment input */}
+                      <div
+                        style={{
+                          borderTop: "1px solid #e8e0d4",
+                          paddingTop: 14,
+                          marginTop: 4,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 10,
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <textarea
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              placeholder="Tulis komentar atau pertanyaan..."
+                              maxLength={500}
+                              rows={2}
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "Enter" &&
+                                  (e.ctrlKey || e.metaKey)
+                                )
+                                  handleSubmitComment();
+                              }}
+                              style={{
+                                width: "100%",
+                                boxSizing: "border-box",
+                                padding: "8px 10px",
+                                borderRadius: 8,
+                                border: "1px solid #d9d1c2",
+                                fontSize: 13,
+                                color: "#29405f",
+                                resize: "none",
+                                fontFamily: "inherit",
+                                background: "#fff",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            className="cta-button"
+                            style={{
+                              height: 34,
+                              fontSize: 12,
+                              padding: "0 14px",
+                              flexShrink: 0,
+                              marginTop: 2,
+                            }}
+                            onClick={handleSubmitComment}
+                            disabled={submittingComment || !commentText.trim()}
+                          >
+                            {submittingComment ? "..." : "Kirim"}
+                          </button>
+                        </div>
+                        <p
+                          style={{
+                            fontSize: 11,
+                            color: "#7b8594",
+                            margin: "4px 0 0",
+                          }}
+                        >
+                          Ctrl+Enter untuk kirim cepat
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TIM TAB */}
+                  {activeTab === "tim" && (
+                    <div>
+                      {app.app_makers.length > 0 && (
+                        <div className="ph-pop-team-grid">
+                          {app.app_makers.map((m, i) => (
+                            <div
+                              key={m.name ?? i}
+                              className="ph-pop-maker-card"
+                            >
+                              <Avatar
+                                src={m.avatar_url}
+                                name={m.name}
+                                size={48}
+                              />
+                              <div className="ph-pop-maker-info">
+                                <strong className="ph-pop-maker-name">
+                                  {m.name}
+                                </strong>
+                                {m.role && (
+                                  <span className="ph-pop-maker-role">
+                                    {m.role}
+                                  </span>
+                                )}
+                                <div className="ph-pop-maker-links">
+                                  {m.website_url && (
+                                    <a
+                                      href={m.website_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="ph-pop-maker-link"
+                                    >
+                                      <IcoExternal />
+                                    </a>
+                                  )}
+                                  {m.twitter_handle && (
+                                    <a
+                                      href={`https://twitter.com/${m.twitter_handle}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="ph-pop-maker-link"
+                                    >
+                                      <IcoX />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {app.built_with.length > 0 && (
+                        <div className="ph-pop-built-with">
+                          <span className="ph-pop-sidebar-eyebrow">
+                            Dibangun dengan
+                          </span>
+                          <div className="ph-pop-built-chips">
+                            {app.built_with.map((t) => (
+                              <span key={t} className="ph-pop-built-chip">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {app.app_makers.length === 0 &&
+                        app.built_with.length === 0 && (
+                          <p
+                            style={{
+                              color: "#7b8594",
+                              fontSize: 14,
+                              textAlign: "center",
+                              padding: "32px 0",
+                            }}
+                          >
+                            Informasi tim belum tersedia.
+                          </p>
+                        )}
+                    </div>
+                  )}
 
-                    {/* Pricing */}
-                    {(() => {
-                      const b = pricingBadge(app.pricing_type);
-                      return b ? (
+                  {/* LAINNYA TAB */}
+                  {activeTab === "lainnya" && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 20,
+                      }}
+                    >
+                      {/* Tech stack */}
+                      {app.built_with?.length > 0 && (
                         <div>
                           <p
                             style={{
@@ -1860,306 +2064,511 @@ export default function RetroPopover({
                               margin: "0 0 8px",
                             }}
                           >
-                            Model harga
+                            Dibangun dengan
                           </p>
-                          <span
-                            className="ph-pop-pricing-badge"
+                          <div
                             style={{
-                              background: b.bg,
-                              color: b.color,
-                              border: `1px solid ${b.border}`,
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 6,
                             }}
                           >
-                            {b.label}
-                          </span>
+                            {app.built_with.map((t) => (
+                              <span
+                                key={t}
+                                style={{
+                                  padding: "4px 10px",
+                                  borderRadius: 6,
+                                  border: "1px solid #d9d1c2",
+                                  background: "#f5f2ec",
+                                  color: "#374352",
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      ) : null;
-                    })()}
+                      )}
 
-                    {/* Open source */}
-                    <div>
-                      <p
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#7b8594",
-                          letterSpacing: "0.07em",
-                          textTransform: "uppercase",
-                          margin: "0 0 8px",
-                        }}
-                      >
-                        Open source
-                      </p>
-                      {app.is_open_source ? (
-                        <span
+                      {/* Pricing */}
+                      {(() => {
+                        const b = pricingBadge(app.pricing_type);
+                        return b ? (
+                          <div>
+                            <p
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#7b8594",
+                                letterSpacing: "0.07em",
+                                textTransform: "uppercase",
+                                margin: "0 0 8px",
+                              }}
+                            >
+                              Model harga
+                            </p>
+                            <span
+                              className="ph-pop-pricing-badge"
+                              style={{
+                                background: b.bg,
+                                color: b.color,
+                                border: `1px solid ${b.border}`,
+                              }}
+                            >
+                              {b.label}
+                            </span>
+                          </div>
+                        ) : null;
+                      })()}
+
+                      {/* Open source */}
+                      <div>
+                        <p
                           style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            background: "#e8f5e9",
-                            color: "#2e7d32",
-                            border: "1px solid #a5d6a7",
-                            fontSize: 12,
-                            fontWeight: 600,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#7b8594",
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                            margin: "0 0 8px",
                           }}
                         >
-                          ✓ Ya, open source
+                          Open source
+                        </p>
+                        {app.is_open_source ? (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "#e8f5e9",
+                              color: "#2e7d32",
+                              border: "1px solid #a5d6a7",
+                              fontSize: 12,
+                              fontWeight: 600,
+                            }}
+                          >
+                            ✓ Ya, open source
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 13, color: "#7b8594" }}>
+                            Tidak / belum diketahui
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Launch info */}
+                      <div>
+                        <p
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#7b8594",
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                            margin: "0 0 8px",
+                          }}
+                        >
+                          Tanggal launch
+                        </p>
+                        <span style={{ fontSize: 13, color: "#29405f" }}>
+                          {app.launch_date
+                            ? new Date(app.launch_date).toLocaleDateString(
+                                "id-ID",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                },
+                              )
+                            : "Belum diketahui"}
                         </span>
-                      ) : (
-                        <span style={{ fontSize: 13, color: "#7b8594" }}>
-                          Tidak / belum diketahui
-                        </span>
+                      </div>
+
+                      {/* Website */}
+                      {app.website_url && (
+                        <div>
+                          <p
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#7b8594",
+                              letterSpacing: "0.07em",
+                              textTransform: "uppercase",
+                              margin: "0 0 8px",
+                            }}
+                          >
+                            Website
+                          </p>
+                          <a
+                            href={app.website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 5,
+                              fontSize: 13,
+                              color: "#29405f",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <IcoExternal />
+                            {app.website_url
+                              .replace(/^https?:\/\//, "")
+                              .replace(/\/$/, "")}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      {app.launch_tags?.length > 0 && (
+                        <div>
+                          <p
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#7b8594",
+                              letterSpacing: "0.07em",
+                              textTransform: "uppercase",
+                              margin: "0 0 8px",
+                            }}
+                          >
+                            Kategori
+                          </p>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 6,
+                            }}
+                          >
+                            {app.launch_tags.map((t) => (
+                              <span key={t} className="ph-pop-tag-chip">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
-
-                    {/* Launch info */}
-                    <div>
-                      <p
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#7b8594",
-                          letterSpacing: "0.07em",
-                          textTransform: "uppercase",
-                          margin: "0 0 8px",
-                        }}
-                      >
-                        Tanggal launch
-                      </p>
-                      <span style={{ fontSize: 13, color: "#29405f" }}>
-                        {app.launch_date
-                          ? new Date(app.launch_date).toLocaleDateString(
-                              "id-ID",
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              },
-                            )
-                          : "Belum diketahui"}
-                      </span>
-                    </div>
-
-                    {/* Website */}
-                    {app.website_url && (
-                      <div>
-                        <p
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: "#7b8594",
-                            letterSpacing: "0.07em",
-                            textTransform: "uppercase",
-                            margin: "0 0 8px",
-                          }}
-                        >
-                          Website
-                        </p>
-                        <a
-                          href={app.website_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            fontSize: 13,
-                            color: "#29405f",
-                            textDecoration: "none",
-                          }}
-                        >
-                          <IcoExternal />
-                          {app.website_url
-                            .replace(/^https?:\/\//, "")
-                            .replace(/\/$/, "")}
-                        </a>
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {app.launch_tags?.length > 0 && (
-                      <div>
-                        <p
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: "#7b8594",
-                            letterSpacing: "0.07em",
-                            textTransform: "uppercase",
-                            margin: "0 0 8px",
-                          }}
-                        >
-                          Kategori
-                        </p>
-                        <div
-                          style={{ display: "flex", flexWrap: "wrap", gap: 6 }}
-                        >
-                          {app.launch_tags.map((t) => (
-                            <span key={t} className="ph-pop-tag-chip">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {/* /tab-panel */}
-            </div>
-            {/* /ph-pop-main */}
-
-            {/* RIGHT COLUMN — SIDEBAR */}
-            <aside className="ph-pop-sidebar">
-              {/* Upvote block */}
-              <div className="ph-pop-upvote-block">
-                <button
-                  type="button"
-                  className={"ph-pop-upvote-btn" + (upvoted ? " active" : "")}
-                  onClick={handleUpvote}
-                  aria-pressed={upvoted}
-                  disabled={upvoteLoading}
-                >
-                  <IcoTriangle filled={upvoted} />
-                  <span className="ph-pop-upvote-count">{upvotes}</span>
-                  <span className="ph-pop-upvote-label">Upvote</span>
-                </button>
-              </div>
-
-              {/* Follow block */}
-              <button
-                type="button"
-                className={"ph-pop-follow-block" + (following ? " active" : "")}
-                onClick={handleFollow}
-                aria-pressed={following}
-                disabled={followLoading}
-              >
-                {following ? "Mengikuti ✓" : "Ikuti"}
-              </button>
-
-              <div className="ph-pop-sidebar-divider" />
-
-              {/* Save to collection */}
-              <button
-                type="button"
-                className={"ph-pop-sidebar-action" + (saved ? " active" : "")}
-                onClick={() => setSaved((s) => !s)}
-              >
-                <IcoBookmark /> {saved ? "Tersimpan" : "Tambah ke Koleksi"}
-              </button>
-
-              {/* Share */}
-              <button
-                type="button"
-                className="ph-pop-sidebar-action"
-                onClick={() =>
-                  navigator.share?.({
-                    title: app.name,
-                    url: app.website_url || window.location.href,
-                  })
-                }
-              >
-                <IcoShare /> Bagikan
-              </button>
-
-              <div className="ph-pop-sidebar-divider" />
-
-              {/* Info Perusahaan */}
-              <div className="ph-pop-sidebar-section">
-                <span className="ph-pop-sidebar-eyebrow">Info perusahaan</span>
-                {app.website_url && (
-                  <a
-                    href={app.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ph-pop-sidebar-row"
-                  >
-                    <IcoExternal />
-                    <span
-                      style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {app.website_url
-                        .replace(/^https?:\/\//, "")
-                        .replace(/\/$/, "")}
-                    </span>
-                  </a>
-                )}
-                {app.is_open_source && (
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      marginTop: 4,
-                      padding: "2px 8px",
-                      borderRadius: 4,
-                      background: "#e8f5e9",
-                      color: "#2e7d32",
-                      border: "1px solid #a5d6a7",
-                      fontSize: 12,
-                    }}
-                  >
-                    Open Source
-                  </span>
-                )}
-                {app.twitter_handle && (
-                  <div className="ph-pop-sidebar-row">
-                    <IcoX /> <span>@{app.twitter_handle}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Info Peluncuran */}
-              <div className="ph-pop-sidebar-section">
-                <span className="ph-pop-sidebar-eyebrow">Info peluncuran</span>
-                {(app.launch_date || app.created_at) && (
-                  <div className="ph-pop-sidebar-row">
-                    Diluncurkan tahun{" "}
-                    {new Date(app.launch_date || app.created_at).getFullYear()}
-                  </div>
-                )}
-                <a
-                  href={`/forum?app=${app.slug}`}
-                  className="ph-pop-sidebar-row ph-pop-forum-link"
-                >
-                  Lihat di forum →
-                </a>
-              </div>
-
-              {/* Sosial */}
-              {(app.twitter_handle || app.instagram_handle) && (
-                <div className="ph-pop-sidebar-section">
-                  <span className="ph-pop-sidebar-eyebrow">Sosial</span>
-                  {app.twitter_handle && (
-                    <a
-                      href={`https://twitter.com/${app.twitter_handle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ph-pop-sidebar-row"
-                    >
-                      <IcoX /> @{app.twitter_handle}
-                    </a>
-                  )}
-                  {app.instagram_handle && (
-                    <a
-                      href={`https://instagram.com/${app.instagram_handle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ph-pop-sidebar-row"
-                    >
-                      <IcoInstagram /> {app.instagram_handle}
-                    </a>
                   )}
                 </div>
-              )}
-            </aside>
+                {/* /tab-panel */}
+              </div>
+              {/* /ph-pop-main */}
+
+              {/* RIGHT COLUMN — SIDEBAR */}
+              <aside className="ph-pop-sidebar">
+                {/* Upvote block */}
+                <div className="ph-pop-upvote-block">
+                  <button
+                    type="button"
+                    className={"ph-pop-upvote-btn" + (upvoted ? " active" : "")}
+                    onClick={handleUpvote}
+                    aria-pressed={upvoted}
+                    disabled={upvoteLoading}
+                  >
+                    <IcoTriangle filled={upvoted} />
+                    <span className="ph-pop-upvote-count">{upvotes}</span>
+                    <span className="ph-pop-upvote-label">Upvote</span>
+                  </button>
+                </div>
+
+                {/* Follow block */}
+                <button
+                  type="button"
+                  className={
+                    "ph-pop-follow-block" + (following ? " active" : "")
+                  }
+                  onClick={handleFollow}
+                  aria-pressed={following}
+                  disabled={followLoading}
+                >
+                  {following ? "Mengikuti ✓" : "Ikuti"}
+                </button>
+
+                <div className="ph-pop-sidebar-divider" />
+
+                {/* Save to collection */}
+                <button
+                  type="button"
+                  className={"ph-pop-sidebar-action" + (saved ? " active" : "")}
+                  onClick={() => setSaved((s) => !s)}
+                >
+                  <IcoBookmark /> {saved ? "Tersimpan" : "Tambah ke Koleksi"}
+                </button>
+
+                {/* Share */}
+                <button
+                  type="button"
+                  className="ph-pop-sidebar-action"
+                  onClick={() =>
+                    navigator.share?.({
+                      title: app.name,
+                      url: app.website_url || window.location.href,
+                    })
+                  }
+                >
+                  <IcoShare /> Bagikan
+                </button>
+
+                <div className="ph-pop-sidebar-divider" />
+
+                {/* Info Perusahaan */}
+                <div className="ph-pop-sidebar-section">
+                  <span className="ph-pop-sidebar-eyebrow">
+                    Info perusahaan
+                  </span>
+                  {app.website_url && (
+                    <a
+                      href={app.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ph-pop-sidebar-row"
+                    >
+                      <IcoExternal />
+                      <span
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {app.website_url
+                          .replace(/^https?:\/\//, "")
+                          .replace(/\/$/, "")}
+                      </span>
+                    </a>
+                  )}
+                  {app.is_open_source && (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        marginTop: 4,
+                        padding: "2px 8px",
+                        borderRadius: 4,
+                        background: "#e8f5e9",
+                        color: "#2e7d32",
+                        border: "1px solid #a5d6a7",
+                        fontSize: 12,
+                      }}
+                    >
+                      Open Source
+                    </span>
+                  )}
+                  {app.twitter_handle && (
+                    <div className="ph-pop-sidebar-row">
+                      <IcoX /> <span>@{app.twitter_handle}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info Peluncuran */}
+                <div className="ph-pop-sidebar-section">
+                  <span className="ph-pop-sidebar-eyebrow">
+                    Info peluncuran
+                  </span>
+                  {(app.launch_date || app.created_at) && (
+                    <div className="ph-pop-sidebar-row">
+                      Diluncurkan tahun{" "}
+                      {new Date(
+                        app.launch_date || app.created_at,
+                      ).getFullYear()}
+                    </div>
+                  )}
+                  <a
+                    href={`/forum?app=${app.slug}`}
+                    className="ph-pop-sidebar-row ph-pop-forum-link"
+                  >
+                    Lihat di forum →
+                  </a>
+                </div>
+
+                {/* Sosial */}
+                {(app.twitter_handle || app.instagram_handle) && (
+                  <div className="ph-pop-sidebar-section">
+                    <span className="ph-pop-sidebar-eyebrow">Sosial</span>
+                    {app.twitter_handle && (
+                      <a
+                        href={`https://twitter.com/${app.twitter_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ph-pop-sidebar-row"
+                      >
+                        <IcoX /> @{app.twitter_handle}
+                      </a>
+                    )}
+                    {app.instagram_handle && (
+                      <a
+                        href={`https://instagram.com/${app.instagram_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ph-pop-sidebar-row"
+                      >
+                        <IcoInstagram /> {app.instagram_handle}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </aside>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Report Modal */}
+      {reportTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Laporkan konten"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setReportTarget(null);
+              setReportReason("");
+              setReportDetail("");
+            }
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10001,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              background: "#fffdf8",
+              borderRadius: 14,
+              padding: 24,
+              width: "100%",
+              maxWidth: 400,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#0d1d38",
+                margin: "0 0 4px",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Laporkan {reportTarget.label}
+            </h2>
+            <p style={{ fontSize: 13, color: "#7b8594", margin: "0 0 16px" }}>
+              Pilih alasan laporan. Tim kami akan meninjau dalam 24 jam.
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              {[
+                { value: "spam", label: "Spam atau promosi berlebihan" },
+                { value: "hate", label: "Ujaran kebencian" },
+                { value: "harassment", label: "Pelecehan atau ancaman" },
+                { value: "misinformation", label: "Informasi menyesatkan" },
+                { value: "inappropriate", label: "Konten tidak pantas" },
+                { value: "other", label: "Lainnya" },
+              ].map((opt) => (
+                <label
+                  key={opt.value}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    cursor: "pointer",
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    border: `1px solid ${reportReason === opt.value ? "#c7820e" : "#d9d1c2"}`,
+                    background: reportReason === opt.value ? "#fef9ec" : "#fff",
+                    fontSize: 13,
+                    color: "#29405f",
+                    fontWeight: reportReason === opt.value ? 700 : 500,
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="report-reason"
+                    value={opt.value}
+                    checked={reportReason === opt.value}
+                    onChange={() => setReportReason(opt.value)}
+                    style={{ accentColor: "#f6a61e" }}
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+            {reportReason === "other" && (
+              <textarea
+                value={reportDetail}
+                onChange={(e) => setReportDetail(e.target.value)}
+                placeholder="Jelaskan lebih lanjut (opsional)..."
+                maxLength={500}
+                rows={2}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #d9d1c2",
+                  fontSize: 12,
+                  color: "#29405f",
+                  resize: "none",
+                  fontFamily: "inherit",
+                  marginBottom: 12,
+                  outline: "none",
+                }}
+              />
+            )}
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "flex-end",
+                marginTop: 4,
+              }}
+            >
+              <button
+                type="button"
+                className="ghost-button"
+                style={{ height: 34, fontSize: 13 }}
+                onClick={() => {
+                  setReportTarget(null);
+                  setReportReason("");
+                  setReportDetail("");
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="cta-button"
+                style={{ height: 34, fontSize: 13 }}
+                onClick={handleSubmitReport}
+                disabled={!reportReason || submittingReport}
+              >
+                {submittingReport ? "Mengirim..." : "Kirim laporan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
