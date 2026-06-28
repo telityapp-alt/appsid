@@ -51,310 +51,214 @@ export default function AuthModal({ onClose }) {
   }
 
   const modal = (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        background: "rgba(21,19,16,0.55)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "#fffdf8",
-          border: "1.5px solid #d9d1c2",
-          borderBottomWidth: 3,
-          borderRadius: 14,
-          boxShadow:
-            "inset 0 -3px 0 rgba(21,19,16,.09), 0 8px 40px rgba(21,19,16,.18)",
-          width: "100%",
-          maxWidth: 400,
-          padding: "32px 32px 28px",
-          position: "relative",
-        }}
-      >
-        {/* Close button */}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Tutup"
-          style={{
-            position: "absolute",
-            top: 14,
-            right: 14,
-            width: 28,
-            height: 28,
-            borderRadius: 7,
-            border: "1px solid #d9d1c2",
-            background: "#f5f2ec",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#55606d",
-            fontSize: 16,
-            lineHeight: 1,
-          }}
+    <div className="retro-backdrop-center" onClick={onClose}>
+      <div className="auth-window" onClick={(e) => e.stopPropagation()}>
+        {/* Title bar — same as RetroPopover */}
+        <div
+          className="retro-titlebar"
+          style={{ borderRadius: "12px 12px 0 0" }}
         >
-          ×
-        </button>
-
-        {/* Header */}
-        <div style={{ marginBottom: 24 }}>
-          <h2
+          <div className="retro-titlebar-left">
+            <div className="pop-dots">
+              <button
+                className="pop-dot pop-dot-close"
+                onClick={onClose}
+                aria-label="Tutup"
+              />
+              <button className="pop-dot pop-dot-min" aria-label="Minimise" />
+              <button className="pop-dot pop-dot-max" aria-label="Maximise" />
+            </div>
+          </div>
+          <div
             style={{
-              fontSize: 22,
-              fontWeight: 800,
-              color: "#0d1d38",
-              letterSpacing: "-0.03em",
-              margin: 0,
-              lineHeight: 1.2,
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
             }}
           >
-            {mode === "signin" ? "Masuk ke akun" : "Buat akun baru"}
-          </h2>
+            <span className="pop-tb-brand">Apphunt</span>
+            <span className="pop-tb-sep">—</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#55606d" }}>
+              {mode === "signin" ? "Masuk" : "Daftar"}
+            </span>
+          </div>
+          {/* spacer to balance the dots */}
+          <div style={{ width: 13 * 3 + 7 * 2 }} />
         </div>
 
-        {/* Mode toggle tabs */}
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            marginBottom: 24,
-            background: "#f5f2ec",
-            border: "1px solid #d9d1c2",
-            borderRadius: 9,
-            padding: 4,
-          }}
-        >
-          {[
-            { key: "signin", label: "Masuk" },
-            { key: "signup", label: "Daftar" },
-          ].map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setMode(key);
-                setError(null);
-                setSuccess(null);
-              }}
+        {/* Body */}
+        <div className="auth-window-body">
+          {/* Heading */}
+          <div>
+            <h2
               style={{
-                flex: 1,
-                height: 32,
-                borderRadius: 7,
-                border:
-                  mode === key ? "1px solid #c7820e" : "1px solid transparent",
-                background: mode === key ? "#f6a61e" : "transparent",
-                boxShadow: mode === key ? "inset 0 -2px 0 #cf860d" : "none",
-                fontSize: 14,
+                fontSize: 20,
                 fontWeight: 800,
-                color: mode === key ? "#111" : "#55606d",
-                cursor: "pointer",
-                letterSpacing: "-0.01em",
-                transition: "all 120ms ease",
+                color: "#0d1d38",
+                letterSpacing: "-0.03em",
+                margin: "0 0 4px",
+                lineHeight: 1.2,
               }}
             >
-              {label}
-            </button>
-          ))}
-        </div>
+              {mode === "signin" ? "Masuk ke akun" : "Buat akun baru"}
+            </h2>
+            <p
+              style={{
+                fontSize: 13,
+                color: "#7b8594",
+                fontWeight: 600,
+                margin: 0,
+              }}
+            >
+              {mode === "signin"
+                ? "Lanjutkan ke Apphunt"
+                : "Bergabung dengan komunitas Apphunt"}
+            </p>
+          </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: 14 }}
-        >
-          {mode === "signup" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <label
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#29405f",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Nama lengkap
-              </label>
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 10 }}
+          >
+            {mode === "signup" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <label style={labelStyle}>Nama lengkap</label>
+                <input
+                  style={inputStyle}
+                  type="text"
+                  placeholder="Nama kamu"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={labelStyle}>Email</label>
               <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Nama kamu"
-                required
                 style={inputStyle}
+                type="email"
+                placeholder="email@kamu.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus={mode === "signin"}
               />
             </div>
-          )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#29405f",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@kamu.com"
-              required
-              autoComplete="email"
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <label
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#29405f",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={
-                mode === "signup" ? "Minimal 8 karakter" : "Password kamu"
-              }
-              required
-              minLength={mode === "signup" ? 8 : undefined}
-              autoComplete={
-                mode === "signin" ? "current-password" : "new-password"
-              }
-              style={inputStyle}
-            />
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div
-              style={{
-                padding: "10px 14px",
-                borderRadius: 8,
-                border: "1px solid #f5b8b8",
-                background: "#fef2f2",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#a03030",
-              }}
-            >
-              {error}
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={labelStyle}>Password</label>
+              <input
+                style={inputStyle}
+                type="password"
+                placeholder={
+                  mode === "signup" ? "Minimal 6 karakter" : "••••••••"
+                }
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={mode === "signup" ? 6 : undefined}
+              />
             </div>
-          )}
 
-          {/* Success */}
-          {success && (
-            <div
+            {error && (
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  background: "#fff3f3",
+                  border: "1px solid #f5c6c6",
+                  color: "#c0392b",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  background: "#f0faf0",
+                  border: "1px solid #b6e2b6",
+                  color: "#1e7e34",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                {success}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="cta-button"
+              disabled={loading}
               style={{
-                padding: "10px 14px",
-                borderRadius: 8,
-                border: "1px solid #a3e4c6",
-                background: "#edfaf4",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#1a6b48",
+                width: "100%",
+                height: 38,
+                fontSize: 14,
+                marginTop: 2,
+                opacity: loading ? 0.7 : 1,
               }}
             >
-              {success}
-            </div>
-          )}
+              {loading
+                ? "Memproses..."
+                : mode === "signin"
+                  ? "Masuk"
+                  : "Buat akun"}
+            </button>
+          </form>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            className="cta-button"
-            disabled={loading}
+          {/* Switch mode */}
+          <p
             style={{
-              width: "100%",
-              height: 42,
-              fontSize: 15,
-              marginTop: 4,
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? "not-allowed" : "pointer",
+              fontSize: 12,
+              color: "#7b8594",
+              fontWeight: 600,
+              margin: 0,
+              textAlign: "center",
             }}
           >
-            {loading
-              ? "Memproses..."
-              : mode === "signin"
-                ? "Masuk"
-                : "Buat akun"}
-          </button>
-        </form>
-
-        {/* Footer note */}
-        <p
-          style={{
-            fontSize: 12,
-            color: "#7b8594",
-            textAlign: "center",
-            margin: "18px 0 0",
-            lineHeight: 1.5,
-          }}
-        >
-          {mode === "signin" ? (
-            <>
-              Belum punya akun?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signup");
-                  setError(null);
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#f6a61e",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  padding: 0,
-                  fontSize: 12,
-                }}
-              >
-                Daftar sekarang
-              </button>
-            </>
-          ) : (
-            <>
-              Sudah punya akun?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signin");
-                  setError(null);
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#f6a61e",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  padding: 0,
-                  fontSize: 12,
-                }}
-              >
-                Masuk
-              </button>
-            </>
-          )}
-        </p>
+            {mode === "signin" ? (
+              <>
+                Belum punya akun?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signup");
+                    setError(null);
+                  }}
+                  style={linkBtnStyle}
+                >
+                  Daftar sekarang
+                </button>
+              </>
+            ) : (
+              <>
+                Sudah punya akun?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signin");
+                    setError(null);
+                  }}
+                  style={linkBtnStyle}
+                >
+                  Masuk
+                </button>
+              </>
+            )}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -362,10 +266,17 @@ export default function AuthModal({ onClose }) {
   return createPortal(modal, document.body);
 }
 
+const labelStyle = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: "#55606d",
+  letterSpacing: "0.01em",
+};
+
 const inputStyle = {
-  height: 40,
+  height: 38,
   padding: "0 12px",
-  borderRadius: 9,
+  borderRadius: 8,
   border: "1.5px solid #d9d1c2",
   background: "#faf8f4",
   fontSize: 14,
@@ -375,4 +286,14 @@ const inputStyle = {
   width: "100%",
   boxSizing: "border-box",
   transition: "border-color 120ms ease",
+};
+
+const linkBtnStyle = {
+  background: "none",
+  border: "none",
+  color: "#f6a61e",
+  fontWeight: 700,
+  cursor: "pointer",
+  padding: 0,
+  fontSize: 12,
 };
