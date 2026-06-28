@@ -2282,50 +2282,18 @@ function HomePageWithPopover() {
 function AppsPageWithPopover() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  // mockApps are in AppsList — we look up by slug from name
-  const mockApps = [
-    {
-      id: 1,
-      name: "Signal board",
-      tagline: "Realtime funnels and cohort health analytics cockpit",
-      image: "/lib-signal-board.png",
-      upvotes: 428,
-      category: "Analytics",
-    },
-    {
-      id: 2,
-      name: "Flow pilot",
-      tagline: "Onboarding command center for activation checkpoints",
-      image: "/lib-flow-pilot.png",
-      upvotes: 315,
-      category: "Analytics",
-    },
-    {
-      id: 3,
-      name: "Warehouse one",
-      tagline: "Data workspace for models, syncs, and QA",
-      image: "/lib-warehouse-one.png",
-      upvotes: 289,
-      category: "Productivity",
-    },
-    {
-      id: 4,
-      name: "Issue radar",
-      tagline: "Debug investigation hub for alerts and traces",
-      image: "/lib-issue-radar.png",
-      upvotes: 194,
-      category: "Developer Tools",
-    },
-    {
-      id: 5,
-      name: "Launch deck",
-      tagline: "Feature rollout control and segment impact reads",
-      image: "/lib-launch-deck.png",
-      upvotes: 156,
-      category: "Developer Tools",
-    },
-  ];
-  const app = mockApps.find((a) => toSlug(a.name) === slug) ?? null;
+  // Look up from libraryCards (same data source as AppsList)
+  const rawCard = libraryCards.find((c) => toSlug(c.name) === slug) ?? null;
+  const app = rawCard
+    ? {
+        id: rawCard.name,
+        slug: toSlug(rawCard.name),
+        ...rawCard,
+        tagline: rawCard.role,
+        category: rawCard.team,
+        upvotes: 150,
+      }
+    : null;
 
   return (
     <>

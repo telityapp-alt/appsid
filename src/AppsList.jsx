@@ -1,6 +1,19 @@
 import React from "react";
 import RetroPopover from "./RetroPopover";
-import { libraryCards } from "./App";
+import { useApps } from "./hooks/useApps";
+import { useUpvote } from "./hooks/useUpvote";
+import SubmitAppModal from "./components/SubmitAppModal";
+
+const CATEGORIES = [
+  "All",
+  "EdTech Product",
+  "Analytics",
+  "Developer Tools",
+  "Productivity",
+  "SaaS",
+  "Live",
+  "On Development",
+];
 
 function SearchIcon() {
   return (
@@ -23,42 +36,73 @@ function CaretUpIcon() {
   );
 }
 
+// Each list item manages its own upvote state independently
+function AppListItemWithUpvote({ app, onClick }) {
+  const { upvotes, upvoted, toggle } = useUpvote(app.id, app.upvotes);
+
+  return (
+    <article
+      className="app-list-item"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+      aria-label={`Buka detail ${app.name}`}
+    >
+      <img
+        src={app.image}
+        alt={app.name}
+        className="app-list-thumb"
+        width={56}
+        height={56}
+      />
+      <div className="app-info">
+        <span className="app-name">{app.name}</span>
+        <span className="app-tagline">{app.tagline}</span>
+      </div>
+      <span className="app-category-badge">{app.category}</span>
+      <div className="app-actions">
+        <button
+          className={`upvote-button${upvoted ? " upvoted" : ""}`}
+          aria-label={`Upvote ${app.name}`}
+          aria-pressed={upvoted}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggle();
+          }}
+        >
+          <CaretUpIcon />
+          <span className="upvote-count">{upvotes}</span>
+        </button>
+      </div>
+    </article>
+  );
+}
+
 export default function AppsList() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [activeCategory, setActiveCategory] = React.useState("All");
   const [selectedApp, setSelectedApp] = React.useState(null);
+  const [showSubmitModal, setShowSubmitModal] = React.useState(false);
 
-  const appsData = React.useMemo(() => {
-    return libraryCards.map((card, i) => ({
-      id: i + 1,
-      ...card,
-      tagline: card.role, // map role to tagline for the UI
-      category: card.team, // map team to category
-      upvotes: 150 + i * 23, // static mock upvotes
-      status: card.status || "On Development", // default status
-    }));
-  }, []);
+  // useApps handles filtering by category + search server-side (or in fallback)
+  const {
+    apps: appsData,
+    loading,
+    error,
+  } = useApps({
+    category: activeCategory === "All" ? null : activeCategory,
+    search: searchQuery,
+  });
 
-  // Extract unique categories dynamically from libraryCards
-  const dynamicCategories = React.useMemo(() => {
-    const allCategories = new Set(["All", "Live", "On Development"]);
-    libraryCards.forEach(card => {
-      if (card.team) allCategories.add(card.team);
-      if (card.status) allCategories.add(card.status);
-    });
-    return Array.from(allCategories);
-  }, []);
-
-  // Extract tech stacks dynamically from richContent
   const techStacks = React.useMemo(() => {
     const stacks = new Set();
-    libraryCards.forEach(card => {
-      const kvBlock = card.richContent?.blocks?.find(b => b.type === "kv");
+    appsData.forEach((app) => {
+      const kvBlock = app.richContent?.blocks?.find((b) => b.type === "kv");
       if (kvBlock) {
-        kvBlock.rows.forEach(row => {
+        kvBlock.rows.forEach((row) => {
           if (row.label === "Tech Stack" && row.value) {
-            // Extract individual techs from string like "React + Vite + Capacitor"
-            row.value.split(/[+&,]/).forEach(tech => {
+            row.value.split(/[+&,]/).forEach((tech) => {
               const trimmed = tech.trim();
               if (trimmed) stacks.add(trimmed);
             });
@@ -66,54 +110,63 @@ export default function AppsList() {
         });
       }
     });
-    return Array.from(stacks).slice(0, 5); // Top 5
-  }, []);
+    return Array.from(stacks).slice(0, 5);
+  }, [appsData]);
 
-  // Extract client industries from card data
   const clientIndustries = React.useMemo(() => {
     const industries = new Set();
-    libraryCards.forEach(card => {
-      // Extract from team or place field
-      if (card.team && card.team.includes("Tech")) {
-        const match = card.team.match(/(\w+)\s+Tech/);
-        if (match) industries.add(match[1]);
+    appsData.forEach((app) => {
+      if (app.category) {
+        if (
+          app.category.includes("EdTech") ||
+          app.category.includes("Learning")
+        )
+          industries.add("Education");
+        if (app.category.includes("HR") || app.category.includes("Talent"))
+          industries.add("HR Tech");
+        if (
+          app.category.includes("Healthcare") ||
+          app.category.includes("Medical")
+        )
+          industries.add("Healthcare");
+        if (app.category.includes("SaaS") || app.category.includes("B2B"))
+          industries.add("SaaS");
       }
-      if (card.place) {
-        // Extract industry keywords
-        if (card.place.includes("EdTech") || card.place.includes("Learning")) industries.add("Education");
-        if (card.place.includes("HR") || card.place.includes("Talent")) industries.add("HR Tech");
-        if (card.place.includes("Healthcare") || card.place.includes("Medical")) industries.add("Healthcare");
-        if (card.place.includes("SaaS") || card.place.includes("B2B")) industries.add("SaaS");
+      if (app.tags) {
+        app.tags.forEach((tag) => {
+          if (tag.includes("EdTech") || tag.includes("Learning"))
+            industries.add("Education");
+          if (tag.includes("HR") || tag.includes("Talent"))
+            industries.add("HR Tech");
+          if (tag.includes("Healthcare") || tag.includes("Medical"))
+            industries.add("Healthcare");
+          if (tag.includes("SaaS") || tag.includes("B2B"))
+            industries.add("SaaS");
+        });
       }
     });
     return Array.from(industries).slice(0, 4);
-  }, []);
+  }, [appsData]);
 
-  // Get featured project (first Live project, fallback to Preppy)
   const featuredProject = React.useMemo(() => {
-    return libraryCards.find(card => card.status?.includes("Live")) || libraryCards[0];
-  }, []);
-
-  const filteredApps = appsData.filter((app) => {
-    const matchesSearch =
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.tagline.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      activeCategory === "All" || app.category === activeCategory || app.status === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+    return (
+      appsData.find((app) => app.status?.toLowerCase().includes("live")) ??
+      appsData[0] ??
+      null
+    );
+  }, [appsData]);
 
   return (
     <section className="apps-page-layout">
-      {/* Left Sidebar: Categories/Tags */}
       <aside className="apps-left-sidebar">
         <h3 className="left-sidebar-title">Categories</h3>
         <div className="tags-list">
-          {dynamicCategories.map((cat) => (
+          {CATEGORIES.map((cat) => (
             <button
               key={cat}
-              className={`mini-tag-btn ${activeCategory === cat ? "active" : ""}`}
+              className={`tag-filter-btn${activeCategory === cat ? " active" : ""}`}
               onClick={() => setActiveCategory(cat)}
+              aria-pressed={activeCategory === cat}
             >
               {cat}
             </button>
@@ -121,146 +174,112 @@ export default function AppsList() {
         </div>
       </aside>
 
-      <div className="apps-main-feed">
-        <div
-          className="mobile-category-bar"
-          role="navigation"
-          aria-label="Filter by category"
-        >
-          {dynamicCategories.map((cat) => (
-            <button
-              key={cat}
-              className={`mini-tag-btn${activeCategory === cat ? " active" : ""}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-        <div className="apps-list-header">
-          <span className="library-kicker">Our Portfolio</span>
-          <h2>Produk yang sudah & sedang kami kerjakan</h2>
-        </div>
-
-        <div className="apps-toolbar">
-          <div className="search-bar-wrap">
+      <div className="apps-main">
+        <div className="apps-main-header">
+          <div className="search-bar">
             <SearchIcon />
             <input
-              type="text"
-              placeholder="Cari produk kami..."
-              className="search-input"
+              type="search"
+              placeholder="Cari app atau produk..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+              aria-label="Cari aplikasi"
             />
           </div>
+          <button
+            className="cta-button"
+            onClick={() => setShowSubmitModal(true)}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            + Submit App
+          </button>
         </div>
 
-        <div className="apps-list">
-          {filteredApps.map((app) => (
-            <article
-              key={app.id}
-              className="app-list-item library-card-style"
-              onClick={() => setSelectedApp(app)}
-            >
-              <div className="app-item-left">
-                <div className="app-logo-wrap">
-                  <img
-                    src={app.image}
-                    alt={`${app.name} logo`}
-                    className="app-logo"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                      e.currentTarget.nextElementSibling.style.display = "flex";
-                    }}
-                  />
-                  <div className="app-logo-placeholder" aria-hidden="true">
-                    <span>{app.name.charAt(0)}</span>
-                  </div>
-                </div>
+        {loading && (
+          <div className="apps-loading" aria-live="polite">
+            Memuat...
+          </div>
+        )}
 
-                <div className="app-info">
-                  <h3 className="app-title">{app.name}</h3>
-                  <p className="app-tagline">{app.tagline}</p>
-                  <div className="app-meta">
-                    <span className="app-meta-comment">
-                      <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        className="icon-inline small-icon"
-                      >
-                        <path d="M5 6.5h14v9H11l-4 3v-3H5z" />
-                        <path d="M9 10.5h6" />
-                      </svg>
-                      <span>12</span>
-                    </span>
-                    <span className="app-meta-tag">
-                      {app.category || "Analytics"}
-                    </span>
-                    <span className="app-meta-tag">
-                      {app.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
+        {error && (
+          <div className="apps-error" role="alert">
+            Gagal memuat apps: {error}
+          </div>
+        )}
 
-              <div className="app-item-right">
-                <button
-                  className="upvote-button"
-                  aria-label={`Upvote ${app.name}`}
-                >
-                  <CaretUpIcon />
-                  <span className="upvote-count">{app.upvotes}</span>
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+        {!loading && !error && (
+          <div className="apps-list">
+            {appsData.length === 0 ? (
+              <p className="apps-empty">Tidak ada app yang cocok.</p>
+            ) : (
+              appsData.map((app) => (
+                <AppListItemWithUpvote
+                  key={app.id}
+                  app={app}
+                  onClick={() => setSelectedApp(app)}
+                />
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       <aside className="apps-sidebar">
-        <div className="sidebar-widget">
-          <span className="sidebar-eyebrow">Featured Project</span>
-          <article className="library-card featured-card">
-            <div className="library-card-hero">
-              <div className="library-card-screenshot-wrap">
-                <img
-                  src={featuredProject.image}
-                  alt={`${featuredProject.name} showcase`}
-                  className="library-card-screenshot"
-                />
+        {featuredProject && (
+          <div className="sidebar-widget">
+            <span className="sidebar-eyebrow">Featured Project</span>
+            <article className="library-card featured-card">
+              <div className="library-card-hero">
+                <div className="library-card-screenshot-wrap">
+                  <img
+                    src={featuredProject.image}
+                    alt={`${featuredProject.name} showcase`}
+                    className="library-card-screenshot"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="library-card-ribbon">
-              <strong>{featuredProject.name}</strong>
-              <span>{featuredProject.status}</span>
-            </div>
-            <div className="library-card-meta">
-              <p>{featuredProject.role}</p>
-            </div>
-          </article>
-        </div>
-
-        <div className="sidebar-widget">
-          <span className="sidebar-eyebrow">Tech Stack</span>
-          <div className="panel-chips">
-            {techStacks.map((chip) => (
-              <span key={chip} className="panel-chip">
-                {chip}
-              </span>
-            ))}
+              <div className="library-card-ribbon">
+                <strong>{featuredProject.name}</strong>
+                <span>{featuredProject.status}</span>
+              </div>
+              <div className="library-card-meta">
+                <p>{featuredProject.tagline}</p>
+              </div>
+            </article>
           </div>
-        </div>
+        )}
 
-        <div className="sidebar-widget">
-          <span className="sidebar-eyebrow">Client Industries</span>
-          <div className="trust-logos">
-            {clientIndustries.map((industry) => (
-              <span key={industry}>{industry}</span>
-            ))}
+        {techStacks.length > 0 && (
+          <div className="sidebar-widget">
+            <span className="sidebar-eyebrow">Tech Stack</span>
+            <div className="panel-chips">
+              {techStacks.map((chip) => (
+                <span key={chip} className="panel-chip">
+                  {chip}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {clientIndustries.length > 0 && (
+          <div className="sidebar-widget">
+            <span className="sidebar-eyebrow">Client Industries</span>
+            <div className="trust-logos">
+              {clientIndustries.map((industry) => (
+                <span key={industry}>{industry}</span>
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
+
       <RetroPopover app={selectedApp} onClose={() => setSelectedApp(null)} />
+      <SubmitAppModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+      />
     </section>
   );
 }
