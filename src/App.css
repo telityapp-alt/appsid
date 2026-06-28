@@ -5849,3 +5849,177 @@
 .link-btn:hover {
     color: #a06a0a;
 }
+
+/* ==========================================================================
+   Phase 5 — Auth gates, polish & notifications
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Focus visible — amber ring for all interactive elements (WCAG AA)
+   -------------------------------------------------------------------------- */
+:focus-visible {
+    outline: 2px solid #f6a61e;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   Status badge chips (LaunchTodayBadge / PricingBadge)
+   -------------------------------------------------------------------------- */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.badge--amber {
+    background: #fff8e6;
+    border: 1px solid #f6a61e;
+    color: #92400e;
+}
+
+.badge--green {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #166534;
+}
+
+.badge--purple {
+    background: #faf5ff;
+    border: 1px solid #c4b5fd;
+    color: #5b21b6;
+}
+
+/* --------------------------------------------------------------------------
+   Toast container — mobile full-width override
+   -------------------------------------------------------------------------- */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    width: max-content;
+}
+
+@media (max-width: 480px) {
+    .toast-container {
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .toast-container > * {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: 100%;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Popover — full-screen on mobile (<= 640px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+    .retro-popover-overlay,
+    .retro-backdrop {
+        padding: 0;
+    }
+
+    .retro-popover-window,
+    .retro-window.pop-window {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    .retro-popover-titlebar,
+    .retro-titlebar {
+        border-radius: 0;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Submit modal — full-screen on mobile (<= 640px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+    .submit-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .submit-modal-window {
+        width: 100vw;
+        max-width: 100vw;
+        border-radius: 14px 14px 0 0;
+        max-height: 92dvh;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   AppsList — single column + sidebar hidden on mobile (<= 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .apps-page-layout {
+        flex-direction: column;
+    }
+
+    .apps-left-sidebar {
+        display: none;
+    }
+
+    .apps-sidebar {
+        display: none;
+    }
+
+    .apps-main,
+    .apps-main-col {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .app-list-item {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   ph-pop-follow-btn — active (following) state
+   -------------------------------------------------------------------------- */
+.ph-pop-follow-btn.active {
+    background: #fff8e6;
+    border-color: #c7820e;
+    color: #92400e;
+}
+
+.ph-pop-follow-btn:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Upvote button — disabled state
+   -------------------------------------------------------------------------- */
+.upvote-button:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}

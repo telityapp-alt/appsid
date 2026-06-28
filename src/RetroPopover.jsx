@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useUpvote } from "./hooks/useUpvote";
+import { useFollow } from "./hooks/useFollow";
+import { useAuthGuard } from "./hooks/useAuthGuard";
+import { useToast } from "./context/ToastContext";
+import { supabase } from "./lib/supabase";
+import { isLaunchingToday } from "./lib/dateUtils";
 
 // ── Inline SVG Icons ──────────────────────────────────────────────────────────
 
@@ -172,21 +177,6 @@ function timeAgo(dateString) {
   if (diffDay < 30) return `${diffDay} hari lalu`;
   if (diffMon < 12) return `${diffMon} bulan lalu`;
   return `${diffYr} tahun lalu`;
-}
-
-function isLaunchingToday(launch_date) {
-  if (!launch_date) return false;
-  const wibNow = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }),
-  );
-  const wibLaunch = new Date(
-    new Date(launch_date).toLocaleString("en-US", { timeZone: "Asia/Jakarta" }),
-  );
-  return (
-    wibNow.getFullYear() === wibLaunch.getFullYear() &&
-    wibNow.getMonth() === wibLaunch.getMonth() &&
-    wibNow.getDate() === wibLaunch.getDate()
-  );
 }
 
 function StarRating({ rating = 0, count = 0 }) {
@@ -404,14 +394,23 @@ export default function RetroPopover({
   const app = normalizeApp(rawApp);
   if (!app) return null;
 
-  const { upvotes, upvoted, loading, toggle } = useUpvote(
-    app?.id,
-    app?.upvotes_count,
-  );
+  const {
+    upvotes,
+    upvoted,
+    loading: upvoteLoading,
+    toggle: toggleUpvote,
+  } = useUpvote(app?.id, app?.upvotes_count);
+  const {
+    following,
+    followCount,
+    loading: followLoading,
+    toggle: toggleFollow,
+  } = useFollow(app?.id, app?.followers_count ?? 0);
+  const { requireAuth } = useAuthGuard();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [gallerySlide, setGallerySlide] = useState(0);
   const [showFullDesc, setShowFullDesc] = useState(false);
-  const [followed, setFollowed] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tabVisible, setTabVisible] = useState(true);
   const autoRef = useRef(null);
@@ -446,6 +445,38 @@ export default function RetroPopover({
   useEffect(() => {
     if (upvoted && onUpvote) onUpvote(rawApp);
   }, [upvoted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auth-gated upvote handler
+  function handleUpvote() {
+    requireAuth(async () => {
+      try {
+        await toggleUpvote();
+        showToast(
+          upvoted ? "Upvote dihapus" : `Upvote untuk ${app.name} berhasil!`,
+          "success",
+        );
+      } catch {
+        showToast("Gagal melakukan upvote. Coba lagi.", "error");
+      }
+    });
+  }
+
+  // Auth-gated follow handler
+  function handleFollow() {
+    requireAuth(async () => {
+      try {
+        await toggleFollow();
+        showToast(
+          following
+            ? `Berhenti mengikuti ${app.name}`
+            : `Mengikuti ${app.name}!`,
+          "success",
+        );
+      } catch {
+        showToast("Gagal mengikuti. Coba lagi.", "error");
+      }
+    });
+  }
 
   // Gallery data
   const gallery = (
@@ -488,12 +519,21 @@ export default function RetroPopover({
           <div className="retro-titlebar-left">
             <div className="pop-dots">
               <button
+                type="button"
                 className="pop-dot pop-dot-close"
                 onClick={handleClose}
                 aria-label="Tutup"
               />
-              <button className="pop-dot pop-dot-min" aria-label="Minimise" />
-              <button className="pop-dot pop-dot-max" aria-label="Maximise" />
+              <button
+                type="button"
+                className="pop-dot pop-dot-min"
+                aria-label="Minimise"
+              />
+              <button
+                type="button"
+                className="pop-dot pop-dot-max"
+                aria-label="Maximise"
+              />
             </div>
           </div>
           <div className="retro-titlebar-center pop-tb-center">
@@ -507,15 +547,18 @@ export default function RetroPopover({
           >
             {/* upvote button in titlebar — wired to useUpvote hook */}
             <button
+              type="button"
               style={{ ...S.tbUpvote, ...(upvoted ? S.tbUpvoteActive : {}) }}
-              onClick={toggle}
-              aria-label={`Upvote ${app.name}`}
+              onClick={handleUpvote}
+              aria-label={`Upvote ${app.name}, total ${upvotes}`}
               aria-pressed={upvoted}
+              disabled={upvoteLoading}
             >
               <IcoTriangle filled={upvoted} />
               {upvotes}
             </button>
             <button
+              type="button"
               className="pop-close-x"
               onClick={handleClose}
               aria-label="Tutup"
@@ -606,10 +649,31 @@ export default function RetroPopover({
                       </a>
                     )}
                     <button
-                      className={`ph-pop-follow-btn${followed ? " active" : ""}`}
-                      onClick={() => setFollowed((f) => !f)}
+                      type="button"
+                      className={`ph-pop-follow-btn${following ? " active" : ""}`}
+                      onClick={handleFollow}
+                      aria-pressed={following}
+                      aria-label={
+                        following
+                          ? `Berhenti mengikuti ${app.name}`
+                          : `Ikuti ${app.name}`
+                      }
+                      disabled={followLoading}
                     >
-                      {followed ? "Mengikuti ✓" : "Ikuti"}
+                      {following ? "Mengikuti ✓" : "Ikuti"}
+                      {followCount > 0 && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "inherit",
+                            opacity: 0.75,
+                            marginLeft: 5,
+                          }}
+                        >
+                          {followCount}
+                        </span>
+                      )}
                     </button>
                   </div>
                   {app.launch_tags.length > 0 && (
@@ -1014,10 +1078,11 @@ export default function RetroPopover({
               {/* Upvote block */}
               <div className="ph-pop-upvote-block">
                 <button
+                  type="button"
                   className={"ph-pop-upvote-btn" + (upvoted ? " active" : "")}
-                  onClick={toggle}
+                  onClick={handleUpvote}
                   aria-pressed={upvoted}
-                  disabled={loading}
+                  disabled={upvoteLoading}
                 >
                   <IcoTriangle filled={upvoted} />
                   <span className="ph-pop-upvote-count">{upvotes}</span>
@@ -1027,10 +1092,13 @@ export default function RetroPopover({
 
               {/* Follow block */}
               <button
-                className={"ph-pop-follow-block" + (followed ? " active" : "")}
-                onClick={() => setFollowed((f) => !f)}
+                type="button"
+                className={"ph-pop-follow-block" + (following ? " active" : "")}
+                onClick={handleFollow}
+                aria-pressed={following}
+                disabled={followLoading}
               >
-                {followed ? "Mengikuti ✓" : "Ikuti"}
+                {following ? "Mengikuti ✓" : "Ikuti"}
               </button>
 
               <div className="ph-pop-sidebar-divider" />

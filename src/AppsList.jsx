@@ -3,8 +3,11 @@ import RetroPopover from "./RetroPopover";
 import { useApps } from "./hooks/useApps";
 import { useCategories } from "./hooks/useCategories";
 import { useUpvote } from "./hooks/useUpvote";
-import SubmitAppModal from "./components/SubmitAppModal";
+import { useAuthGuard } from "./hooks/useAuthGuard";
 import { useAuth } from "./hooks/useAuth";
+import { useToast } from "./context/ToastContext";
+import SubmitAppModal from "./components/SubmitAppModal";
+import { LaunchTodayBadge, PricingBadge } from "./components/AppStatusBadge";
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -31,7 +34,7 @@ function CaretUpIcon() {
 }
 
 // ---------------------------------------------------------------------------
-// Skeleton loader — shown while first page is loading
+// Skeleton loader
 // ---------------------------------------------------------------------------
 function AppListSkeleton() {
   return (
@@ -52,6 +55,43 @@ function AppListSkeleton() {
 }
 
 // ---------------------------------------------------------------------------
+// Empty state for "Hari ini" filter with zero results
+// ---------------------------------------------------------------------------
+function EmptyHariIni() {
+  return (
+    <div
+      role="status"
+      aria-label="Belum ada apps yang diluncurkan hari ini"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "48px 24px",
+        textAlign: "center",
+        gap: 12,
+      }}
+    >
+      <span style={{ fontSize: 40 }}>🚀</span>
+      <p
+        style={{
+          fontSize: 15,
+          fontWeight: 700,
+          color: "#29405f",
+          margin: 0,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        Belum ada yang launch hari ini
+      </p>
+      <p style={{ fontSize: 13, color: "#7b8594", margin: 0 }}>
+        Cek lagi nanti — produk baru biasanya launch pagi WIB.
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Sort controls
 // ---------------------------------------------------------------------------
 const SORT_OPTIONS = [
@@ -66,6 +106,7 @@ function SortControls({ activeSort, onChange }) {
       {SORT_OPTIONS.map((opt) => (
         <button
           key={opt.value}
+          type="button"
           className={`mini-tag-btn${activeSort === opt.value ? " active" : ""}`}
           onClick={() => onChange(opt.value)}
           aria-pressed={activeSort === opt.value}
@@ -81,10 +122,29 @@ function SortControls({ activeSort, onChange }) {
 // Single app list item — owns its own optimistic upvote state
 // ---------------------------------------------------------------------------
 function AppListItem({ app, onClick }) {
-  const { upvotes, upvoted, pending, toggle } = useUpvote(
-    app.id,
-    app.upvotes_count ?? app.upvotes ?? 0,
-  );
+  const { requireAuth } = useAuthGuard();
+  const { showToast } = useToast();
+  const {
+    upvotes,
+    upvoted,
+    loading: upvoteLoading,
+    toggle,
+  } = useUpvote(app.id, app.upvotes_count ?? app.upvotes ?? 0);
+
+  async function handleUpvote(e) {
+    e.stopPropagation();
+    requireAuth(async () => {
+      try {
+        await toggle();
+        showToast(
+          upvoted ? "Upvote dihapus" : `Upvote untuk ${app.name} berhasil!`,
+          "success",
+        );
+      } catch {
+        showToast("Gagal melakukan upvote. Coba lagi.", "error");
+      }
+    });
+  }
 
   return (
     <article
@@ -109,20 +169,31 @@ function AppListItem({ app, onClick }) {
       <div className="app-info">
         <span className="app-name">{app.name}</span>
         <span className="app-tagline">{app.tagline}</span>
+        {/* Status chips inline below tagline */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            flexWrap: "wrap",
+            marginTop: 4,
+          }}
+        >
+          <LaunchTodayBadge launchDate={app.launch_date} />
+          <PricingBadge pricingType={app.pricing_type} />
+        </div>
       </div>
       <span className="app-category-badge">
         {app.category ?? app.launch_tags?.[0] ?? "General"}
       </span>
       <div className="app-actions">
         <button
-          className={`upvote-button${upvoted ? " upvoted" : ""}${pending ? " pending" : ""}`}
+          type="button"
+          className={`upvote-button${upvoted ? " upvoted" : ""}${upvoteLoading ? " pending" : ""}`}
           aria-label={`Upvote ${app.name}`}
           aria-pressed={upvoted}
-          disabled={pending}
-          onClick={(e) => {
-            e.stopPropagation();
-            toggle();
-          }}
+          disabled={upvoteLoading}
+          onClick={handleUpvote}
         >
           <CaretUpIcon />
           <span className="upvote-count">{upvotes}</span>
@@ -141,9 +212,8 @@ export default function AppsList() {
   const [activeSort, setActiveSort] = React.useState("upvotes");
   const [selectedApp, setSelectedApp] = React.useState(null);
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
-  const [showAuthModal, setShowAuthModal] = React.useState(false);
 
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
 
   // Live category list from Supabase (with "Semua" prepended)
   const { categories } = useCategories();
@@ -161,7 +231,7 @@ export default function AppsList() {
     sort: activeSort,
   });
 
-  // Debounced search — reset category when user types so results make sense
+  // Debounced search
   const [searchInput, setSearchInput] = React.useState("");
   const searchTimer = React.useRef(null);
   function handleSearchChange(e) {
@@ -178,7 +248,8 @@ export default function AppsList() {
     if (user) {
       setShowSubmitModal(true);
     } else {
-      setShowAuthModal(true);
+      // Use AuthContext modal — queues submit modal open after login
+      openAuthModal(() => setShowSubmitModal(true));
     }
   }
 
@@ -197,7 +268,6 @@ export default function AppsList() {
           }
         });
       }
-      // Also pull from builtWith
       (app.builtWith ?? []).forEach((t) => {
         if (t) stacks.add(t);
       });
@@ -224,8 +294,11 @@ export default function AppsList() {
     return Array.from(industries).slice(0, 6);
   }, [appsData]);
 
-  // Featured project = first app in the list (highest upvotes by default sort)
   const featuredProject = appsData[0] ?? null;
+
+  // "Hari ini" filter active and no results
+  const isHariIniEmpty =
+    activeSort === "today" && !loading && !error && appsData.length === 0;
 
   return (
     <section className="apps-page-layout">
@@ -248,6 +321,7 @@ export default function AppsList() {
             />
           </label>
           <button
+            type="button"
             className="cta-btn"
             onClick={handleSubmitClick}
             aria-label="Submit app baru"
@@ -261,6 +335,7 @@ export default function AppsList() {
           {categories.map((cat) => (
             <button
               key={cat}
+              type="button"
               className={`mini-tag-btn${activeCategory === cat ? " active" : ""}`}
               onClick={() => setActiveCategory(cat)}
               aria-pressed={activeCategory === cat}
@@ -280,11 +355,14 @@ export default function AppsList() {
           <p className="app-list-error" role="alert">
             {error}
           </p>
+        ) : isHariIniEmpty ? (
+          <EmptyHariIni />
         ) : appsData.length === 0 ? (
           <p className="app-list-empty">
             Tidak ada apps ditemukan.{" "}
             {searchQuery && (
               <button
+                type="button"
                 className="link-btn"
                 onClick={() => {
                   setSearchInput("");
@@ -305,10 +383,10 @@ export default function AppsList() {
               ))}
             </ul>
 
-            {/* Load more */}
             {hasMore && (
               <div className="app-list-loadmore">
                 <button
+                  type="button"
                   className="mini-tag-btn"
                   onClick={loadMore}
                   disabled={loading}
@@ -319,7 +397,6 @@ export default function AppsList() {
               </div>
             )}
 
-            {/* Loading more indicator */}
             {loading && appsData.length > 0 && (
               <p className="app-list-loading-more" aria-live="polite">
                 Memuat...
@@ -343,6 +420,7 @@ export default function AppsList() {
                     src={featuredProject.logo_url ?? featuredProject.image}
                     alt={`${featuredProject.name} showcase`}
                     className="library-card-screenshot"
+                    loading="lazy"
                   />
                 </div>
               </div>
@@ -390,7 +468,6 @@ export default function AppsList() {
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
       />
-      {showAuthModal && <div style={{ display: "none" }} aria-hidden="true" />}
     </section>
   );
 }
