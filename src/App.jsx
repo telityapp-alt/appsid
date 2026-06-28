@@ -1803,12 +1803,12 @@ function App() {
                 Apps
               </NavLink>
               <NavLink
-                to="/perks"
+                to="/bansos"
                 className={({ isActive }) =>
                   isActive ? "active-nav" : undefined
                 }
               >
-                Gratisan
+                Bansos AI
               </NavLink>
               <NavLink
                 to="/marketplace"
@@ -2019,13 +2019,13 @@ function App() {
                 Apps
               </NavLink>
               <NavLink
-                to="/perks"
+                to="/bansos"
                 className={({ isActive }) =>
                   isActive ? "active-nav" : undefined
                 }
                 onClick={() => setMenuOpen(false)}
               >
-                Gratisan
+                Bansos AI
               </NavLink>
 
               <NavLink
@@ -2124,9 +2124,9 @@ function App() {
             <Route path=":slug" element={<AppsPageWithPopover />} />
           </Route>
 
-          {/* Perks */}
+          {/* Bansos AI */}
           <Route
-            path="/perks"
+            path="/bansos"
             element={
               <main className="content content-wide">
                 <PerksPage />
