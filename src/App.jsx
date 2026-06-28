@@ -26,6 +26,8 @@ import PreppyPage from "./PreppyPage";
 import MarketplacePage from "./MarketplacePage";
 import BursaPage from "./BursaPage";
 import ForumPage from "./ForumPage";
+import EventsPage from "./EventsPage";
+import JobsPage from "./JobsPage";
 import ToolsPage from "./ToolsPage";
 import PatunganPage from "./PatunganPage";
 import ContactPopover from "./ContactPopover";
@@ -1773,6 +1775,7 @@ function AppsPage() {
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   return (
     <div className="page-shell">
@@ -1848,14 +1851,97 @@ function App() {
                 Patungan
               </NavLink>
 
-              <NavLink
-                to="/news"
-                className={({ isActive }) =>
-                  isActive ? "active-nav" : undefined
-                }
-              >
-                News
-              </NavLink>
+              {/* More dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((o) => !o)}
+                  onBlur={() => setTimeout(() => setMoreOpen(false), 150)}
+                  style={{
+                    height: 32,
+                    padding: "0 10px",
+                    borderRadius: 8,
+                    border: "1px solid transparent",
+                    background: "transparent",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: moreOpen ? "#0d1d38" : "#2e3137",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontFamily: "inherit",
+                  }}
+                >
+                  More
+                  <svg
+                    viewBox="0 0 10 6"
+                    width="10"
+                    height="6"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                    style={{
+                      opacity: 0.6,
+                      transition: "transform 160ms",
+                      transform: moreOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                  >
+                    <path d="M1 1l4 4 4-4" />
+                  </svg>
+                </button>
+
+                {moreOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      left: 0,
+                      minWidth: 160,
+                      background: "#fffdf8",
+                      border: "1px solid #d9d1c2",
+                      borderBottomWidth: 2,
+                      borderRadius: 10,
+                      boxShadow:
+                        "inset 0 -3px 0 rgba(21,19,16,.09), 0 4px 16px rgba(21,19,16,.12)",
+                      padding: "6px",
+                      zIndex: 200,
+                    }}
+                  >
+                    {[
+                      { to: "/events", label: "Events" },
+                      { to: "/jobs", label: "Jobs" },
+                      { to: "/news", label: "News" },
+                    ].map(({ to, label }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        onClick={() => setMoreOpen(false)}
+                        className={({ isActive }) =>
+                          isActive ? "active-nav" : undefined
+                        }
+                        style={({ isActive }) => ({
+                          display: "block",
+                          padding: "8px 12px",
+                          borderRadius: 7,
+                          fontSize: 15,
+                          fontWeight: 600,
+                          color: isActive ? "#0d1d38" : "#2e3137",
+                          background: isActive
+                            ? "rgba(246,166,30,.12)"
+                            : "transparent",
+                          textDecoration: "none",
+                        })}
+                      >
+                        {label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
           <div className="topbar-right">
@@ -2074,6 +2160,26 @@ function App() {
             element={
               <main className="content content-wide">
                 <ForumPage />
+              </main>
+            }
+          />
+
+          {/* Events */}
+          <Route
+            path="/events"
+            element={
+              <main className="content content-wide">
+                <EventsPage />
+              </main>
+            }
+          />
+
+          {/* Jobs */}
+          <Route
+            path="/jobs"
+            element={
+              <main className="content content-wide">
+                <JobsPage />
               </main>
             }
           />

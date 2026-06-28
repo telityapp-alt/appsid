@@ -545,8 +545,17 @@ export default function ForumPage() {
               type="button"
               className="ghost-button"
               style={{ fontSize: 14, height: 38 }}
+              onClick={() => (window.location.href = "/events")}
             >
-              Lihat panduan
+              AI Events
+            </button>
+            <button
+              type="button"
+              className="ghost-button"
+              style={{ fontSize: 14, height: 38 }}
+              onClick={() => (window.location.href = "/jobs")}
+            >
+              Job portal
             </button>
           </div>
         </div>
