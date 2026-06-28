@@ -7,10 +7,10 @@
 
 import { supabase } from "./supabase";
 
-const LOGO_MAX_BYTES    = 2 * 1024 * 1024;  // 2 MB (server enforces 5 MB hard limit)
-const GALLERY_MAX_BYTES = 5 * 1024 * 1024;  // 5 MB
-const ALLOWED_TYPES     = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const BUCKET            = "app-assets";
+const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2 MB (server enforces 5 MB hard limit)
+const GALLERY_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const BUCKET = "app-assets";
 
 /**
  * Upload a logo or gallery image to the app-assets bucket.
@@ -23,39 +23,46 @@ const BUCKET            = "app-assets";
  * @returns {Promise<string>}    - Public URL of the uploaded file
  * @throws {Error}               - Descriptive error if validation or upload fails
  */
-export async function uploadAppAsset(file, userId, appId, type, galleryIndex = 0) {
+export async function uploadAppAsset(
+  file,
+  userId,
+  appId,
+  type,
+  galleryIndex = 0,
+) {
   if (!supabase) {
-    throw new Error("Supabase client tidak tersedia. Pastikan environment variables sudah di-set.");
+    throw new Error(
+      "Supabase client tidak tersedia. Pastikan environment variables sudah di-set.",
+    );
   }
 
   // Validate type
   if (!ALLOWED_TYPES.includes(file.type)) {
     throw new Error(
-      `Tipe file tidak didukung: ${file.type}. Gunakan JPEG, PNG, WebP, atau GIF.`
+      `Tipe file tidak didukung: ${file.type}. Gunakan JPEG, PNG, WebP, atau GIF.`,
     );
   }
 
   // Validate size
   const maxBytes = type === "logo" ? LOGO_MAX_BYTES : GALLERY_MAX_BYTES;
-  const limitMB  = maxBytes / (1024 * 1024);
+  const limitMB = maxBytes / (1024 * 1024);
   if (file.size > maxBytes) {
     throw new Error(
-      `File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)} MB). Maksimal ${limitMB} MB untuk ${type}.`
+      `File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)} MB). Maksimal ${limitMB} MB untuk ${type}.`,
     );
   }
 
   // Build storage path
-  const ext      = file.name.split(".").pop().toLowerCase() || "jpg";
-  const filename = type === "logo"
-    ? `logo.${ext}`
-    : `gallery-${galleryIndex}.${ext}`;
+  const ext = file.name.split(".").pop().toLowerCase() || "jpg";
+  const filename =
+    type === "logo" ? `logo.${ext}` : `gallery-${galleryIndex}.${ext}`;
   const path = `${userId}/${appId}/${filename}`;
 
   // Upload (upsert: replace if already exists)
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
     .upload(path, file, {
-      upsert:      true,
+      upsert: true,
       contentType: file.type,
     });
 

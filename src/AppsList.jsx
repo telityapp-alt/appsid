@@ -3,6 +3,7 @@ import RetroPopover from "./RetroPopover";
 import { useApps } from "./hooks/useApps";
 import { useUpvote } from "./hooks/useUpvote";
 import SubmitAppModal from "./components/SubmitAppModal";
+import { useAuth } from "./hooks/useAuth";
 
 const CATEGORIES = [
   "All",
@@ -84,6 +85,21 @@ export default function AppsList() {
   const [activeCategory, setActiveCategory] = React.useState("All");
   const [selectedApp, setSelectedApp] = React.useState(null);
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const { user } = useAuth();
+
+  function handleSubmitClick() {
+    if (user) {
+      setShowSubmitModal(true);
+    } else {
+      setShowAuthModal(true);
+    }
+  }
+
+  function handleAuthSuccess() {
+    setShowAuthModal(false);
+    setShowSubmitModal(true);
+  }
 
   // useApps handles filtering by category + search server-side (or in fallback)
   const {
@@ -188,8 +204,9 @@ export default function AppsList() {
             />
           </div>
           <button
+            type="button"
             className="cta-button"
-            onClick={() => setShowSubmitModal(true)}
+            onClick={handleSubmitClick}
             style={{ whiteSpace: "nowrap" }}
           >
             + Submit App
@@ -280,6 +297,8 @@ export default function AppsList() {
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
       />
+      {/* AuthModal: render here if/when AuthModal component is added */}
+      {showAuthModal && <div style={{ display: "none" }} aria-hidden="true" />}
     </section>
   );
 }
