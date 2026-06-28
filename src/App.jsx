@@ -15,14 +15,12 @@ import PerksPage from "./PerksPage";
 import RetroPopover from "./RetroPopover";
 import OdooPage, { OdooPageWithPopover } from "./OdooPage";
 import SolutionsPage from "./SolutionsPage";
-
 import DocsPage from "./DocsPage";
 import Footer from "./Footer";
 import HppCalculatorPage from "./HppCalculatorPage";
 import FranchisePage from "./FranchisePage";
 import FranchiseMethodPage from "./FranchiseMethodPage";
 import PreppyPage from "./PreppyPage";
-
 import MarketplacePage from "./MarketplacePage";
 import BursaPage from "./BursaPage";
 import ForumPage from "./ForumPage";
@@ -31,6 +29,8 @@ import JobsPage from "./JobsPage";
 import ToolsPage from "./ToolsPage";
 import PatunganPage from "./PatunganPage";
 import ContactPopover from "./ContactPopover";
+import AuthModal from "./components/ui/AuthModal";
+import { useAuth } from "./context/AuthContext";
 
 const tabs = [
   {
@@ -1776,6 +1776,8 @@ function AppsPage() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const { user, signOut, loading: authLoading } = useAuth();
 
   return (
     <div className="page-shell">
@@ -1945,22 +1947,26 @@ function App() {
             </nav>
           </div>
           <div className="topbar-right">
-            <button type="button" className="cta-button topbar-cta">
-              Start free
-            </button>
-            <button type="button" className="icon-button" aria-label="Search">
-              <SearchIcon />
-            </button>
-            <button type="button" className="icon-button" aria-label="Messages">
-              <MessageIcon />
-            </button>
-            <button
-              type="button"
-              className="icon-button avatar-button"
-              aria-label="Account"
-            >
-              <UserIcon />
-            </button>
+            {!authLoading &&
+              (user ? (
+                <button
+                  type="button"
+                  className="ghost-button topbar-cta"
+                  onClick={() => signOut()}
+                  style={{ height: 38, borderRadius: 9, fontSize: 14 }}
+                >
+                  Keluar
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="cta-button topbar-cta"
+                  onClick={() => setAuthOpen(true)}
+                  style={{ height: 38, borderRadius: 9 }}
+                >
+                  Masuk
+                </button>
+              ))}
             <button
               type="button"
               className="hamburger-btn"
@@ -2242,6 +2248,9 @@ function App() {
 
         <Footer />
       </div>
+
+      {/* Auth Modal */}
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
     </div>
   );
 }
