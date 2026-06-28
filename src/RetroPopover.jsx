@@ -439,6 +439,9 @@ export default function RetroPopover({
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null); // { id, name }
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
   const autoRef = useRef(null);
   const hoverRef = useRef(false);
 
@@ -447,6 +450,13 @@ export default function RetroPopover({
     setGallerySlide(0);
     setActiveTab("overview");
     setShowFullDesc(false);
+    setReplyingTo(null);
+    setReplyText("");
+    setCommentText("");
+    setMyRating(0);
+    setMyReviewText("");
+    setReviews([]);
+    setLiveComments([]);
   }, [app.id]);
 
   // Scroll lock
@@ -556,11 +566,11 @@ export default function RetroPopover({
     setCommentsLoading(true);
     supabase
       .from("app_comments")
-      .select("id, body, created_at, user_id, is_pinned")
+      .select("id, body, created_at, user_id, is_pinned, parent_id")
       .eq("app_id", app.id)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: true })
-      .limit(50)
+      .limit(100)
       .then(async ({ data }) => {
         if (cancelled) return;
         const rows = data ?? [];
@@ -648,11 +658,11 @@ export default function RetroPopover({
         setCommentText("");
         const { data: cRows } = await supabase
           .from("app_comments")
-          .select("id, body, created_at, user_id, is_pinned")
+          .select("id, body, created_at, user_id, is_pinned, parent_id")
           .eq("app_id", app.id)
           .order("is_pinned", { ascending: false })
           .order("created_at", { ascending: true })
-          .limit(50);
+          .limit(100);
         const cIds = [
           ...new Set((cRows ?? []).map((r) => r.user_id).filter(Boolean)),
         ];
@@ -667,6 +677,49 @@ export default function RetroPopover({
         showToast(err.message ?? "Gagal mengirim komentar.", "error");
       } finally {
         setSubmittingComment(false);
+      }
+    });
+  }
+
+  // Submit reply to a comment
+  async function handleSubmitReply() {
+    requireAuth(async () => {
+      if (!replyText.trim() || !replyingTo) return;
+      setSubmittingReply(true);
+      try {
+        const { error } = await supabase.from("app_comments").insert({
+          app_id: app.id,
+          user_id: user.id,
+          body: replyText.trim(),
+          is_pinned: false,
+          parent_id: replyingTo.id,
+        });
+        if (error) throw error;
+        showToast("Balasan berhasil dikirim!", "success");
+        setReplyText("");
+        setReplyingTo(null);
+        // Reload all comments + replies
+        const { data: cRows } = await supabase
+          .from("app_comments")
+          .select("id, body, created_at, user_id, is_pinned, parent_id")
+          .eq("app_id", app.id)
+          .order("is_pinned", { ascending: false })
+          .order("created_at", { ascending: true })
+          .limit(100);
+        const cIds = [
+          ...new Set((cRows ?? []).map((r) => r.user_id).filter(Boolean)),
+        ];
+        const cProfiles = await fetchProfilesMap(cIds);
+        setLiveComments(
+          (cRows ?? []).map((r) => ({
+            ...r,
+            profiles: cProfiles[r.user_id] ?? null,
+          })),
+        );
+      } catch (err) {
+        showToast(err.message ?? "Gagal mengirim balasan.", "error");
+      } finally {
+        setSubmittingReply(false);
       }
     });
   }
@@ -931,8 +984,14 @@ export default function RetroPopover({
               <nav className="ph-pop-tabs" role="tablist">
                 {[
                   { label: "Overview", value: "overview" },
-                  { label: `Ulasan (${app.reviews_count})`, value: "ulasan" },
-                  { label: "Forum", value: "forum" },
+                  {
+                    label: `Ulasan (${reviewsLoading ? app.reviews_count : reviews.length})`,
+                    value: "ulasan",
+                  },
+                  {
+                    label: `Forum (${commentsLoading ? "…" : liveComments.length})`,
+                    value: "forum",
+                  },
                   { label: "Tim", value: "tim" },
                   { label: "Lainnya", value: "lainnya" },
                 ].map((tab) => (
@@ -1392,41 +1451,203 @@ export default function RetroPopover({
                         Belum ada diskusi. Mulai percakapan!
                       </p>
                     ) : (
-                      liveComments.map((c, i) => (
-                        <div key={c.id ?? i} className="ph-pop-comment">
-                          <Avatar
-                            src={c.profiles?.avatar_url}
-                            name={c.profiles?.full_name ?? "Pengguna"}
-                            size={36}
-                          />
-                          <div className="ph-pop-comment-body">
-                            <div className="ph-pop-comment-meta">
-                              <strong>
-                                {c.profiles?.full_name ?? "Pengguna"}
-                              </strong>
-                              {c.is_pinned && (
-                                <span
+                      // Group: top-level comments + their replies
+                      liveComments
+                        .filter((c) => !c.parent_id)
+                        .map((c, i) => {
+                          const replies = liveComments.filter(
+                            (r) => r.parent_id === c.id,
+                          );
+                          const isReplyingHere = replyingTo?.id === c.id;
+                          return (
+                            <div
+                              key={c.id ?? i}
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 0,
+                              }}
+                            >
+                              {/* Top-level comment */}
+                              <div className="ph-pop-comment">
+                                <Avatar
+                                  src={c.profiles?.avatar_url}
+                                  name={c.profiles?.full_name ?? "Pengguna"}
+                                  size={36}
+                                />
+                                <div
+                                  className="ph-pop-comment-body"
+                                  style={{ flex: 1 }}
+                                >
+                                  <div className="ph-pop-comment-meta">
+                                    <strong>
+                                      {c.profiles?.full_name ?? "Pengguna"}
+                                    </strong>
+                                    {c.is_pinned && (
+                                      <span
+                                        style={{
+                                          fontSize: 10,
+                                          padding: "1px 6px",
+                                          borderRadius: 4,
+                                          background: "#e0f2f1",
+                                          color: "#00695c",
+                                          border: "1px solid #80cbc4",
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        Disematkan
+                                      </span>
+                                    )}
+                                    <span className="ph-pop-comment-time">
+                                      {timeAgo(c.created_at)}
+                                    </span>
+                                  </div>
+                                  <p className="ph-pop-comment-text">
+                                    {c.body}
+                                  </p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (isReplyingHere) {
+                                        setReplyingTo(null);
+                                        setReplyText("");
+                                      } else {
+                                        setReplyingTo({
+                                          id: c.id,
+                                          name:
+                                            c.profiles?.full_name ?? "Pengguna",
+                                        });
+                                        setReplyText("");
+                                      }
+                                    }}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      fontSize: 11,
+                                      color: "#7b8594",
+                                      padding: "2px 0",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {isReplyingHere ? "Batal" : "Balas"}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Inline reply input */}
+                              {isReplyingHere && (
+                                <div
                                   style={{
-                                    fontSize: 10,
-                                    padding: "1px 6px",
-                                    borderRadius: 4,
-                                    background: "#e0f2f1",
-                                    color: "#00695c",
-                                    border: "1px solid #80cbc4",
-                                    fontWeight: 600,
+                                    marginLeft: 46,
+                                    marginTop: 6,
+                                    display: "flex",
+                                    gap: 8,
+                                    alignItems: "flex-start",
                                   }}
                                 >
-                                  Disematkan
-                                </span>
+                                  <div style={{ flex: 1 }}>
+                                    <textarea
+                                      value={replyText}
+                                      onChange={(e) =>
+                                        setReplyText(e.target.value)
+                                      }
+                                      placeholder={`Balas ${replyingTo.name}...`}
+                                      maxLength={500}
+                                      rows={2}
+                                      autoFocus
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "Enter" &&
+                                          (e.ctrlKey || e.metaKey)
+                                        )
+                                          handleSubmitReply();
+                                      }}
+                                      style={{
+                                        width: "100%",
+                                        boxSizing: "border-box",
+                                        padding: "7px 10px",
+                                        borderRadius: 8,
+                                        border: "1px solid #d9d1c2",
+                                        fontSize: 12,
+                                        color: "#29405f",
+                                        resize: "none",
+                                        fontFamily: "inherit",
+                                        background: "#fff",
+                                        outline: "none",
+                                      }}
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="cta-button"
+                                    style={{
+                                      height: 30,
+                                      fontSize: 11,
+                                      padding: "0 12px",
+                                      flexShrink: 0,
+                                      marginTop: 2,
+                                    }}
+                                    onClick={handleSubmitReply}
+                                    disabled={
+                                      submittingReply || !replyText.trim()
+                                    }
+                                  >
+                                    {submittingReply ? "..." : "Kirim"}
+                                  </button>
+                                </div>
                               )}
-                              <span className="ph-pop-comment-time">
-                                {timeAgo(c.created_at)}
-                              </span>
+
+                              {/* Nested replies */}
+                              {replies.length > 0 && (
+                                <div
+                                  style={{
+                                    marginLeft: 46,
+                                    borderLeft: "2px solid #e8e0d4",
+                                    paddingLeft: 12,
+                                    marginTop: 6,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 8,
+                                  }}
+                                >
+                                  {replies.map((r, ri) => (
+                                    <div
+                                      key={r.id ?? ri}
+                                      className="ph-pop-comment"
+                                      style={{ alignItems: "flex-start" }}
+                                    >
+                                      <Avatar
+                                        src={r.profiles?.avatar_url}
+                                        name={
+                                          r.profiles?.full_name ?? "Pengguna"
+                                        }
+                                        size={28}
+                                      />
+                                      <div className="ph-pop-comment-body">
+                                        <div className="ph-pop-comment-meta">
+                                          <strong style={{ fontSize: 12 }}>
+                                            {r.profiles?.full_name ??
+                                              "Pengguna"}
+                                          </strong>
+                                          <span className="ph-pop-comment-time">
+                                            {timeAgo(r.created_at)}
+                                          </span>
+                                        </div>
+                                        <p
+                                          className="ph-pop-comment-text"
+                                          style={{ fontSize: 12 }}
+                                        >
+                                          {r.body}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <p className="ph-pop-comment-text">{c.body}</p>
-                          </div>
-                        </div>
-                      ))
+                          );
+                        })
                     )}
 
                     {/* Comment input */}
