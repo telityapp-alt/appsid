@@ -131,7 +131,7 @@ function AppListItem({ app, onClick }) {
     toggle,
   } = useUpvote(app.id, app.upvotes_count ?? app.upvotes ?? 0);
 
-  async function handleUpvote(e) {
+  function handleUpvote(e) {
     e.stopPropagation();
     requireAuth(async () => {
       try {
@@ -148,57 +148,61 @@ function AppListItem({ app, onClick }) {
 
   return (
     <article
-      className="app-list-item"
+      className="app-list-item library-card-style"
       onClick={onClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick()}
       aria-label={`Buka detail ${app.name}`}
     >
-      <img
-        src={app.logo_url ?? app.image}
-        alt={app.name}
-        className="app-list-thumb"
-        width={56}
-        height={56}
-        loading="lazy"
-        onError={(e) => {
-          e.currentTarget.src = "/placeholder-app.png";
-        }}
-      />
-      <div className="app-info">
-        <span className="app-name">{app.name}</span>
-        <span className="app-tagline">{app.tagline}</span>
-        {/* Status chips inline below tagline */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 5,
-            flexWrap: "wrap",
-            marginTop: 4,
-          }}
-        >
-          <LaunchTodayBadge launchDate={app.launch_date} />
-          <PricingBadge pricingType={app.pricing_type} />
+      {/* Left: logo + info */}
+      <div className="app-item-left">
+        <div className="app-logo-wrap">
+          <img
+            src={app.logo_url ?? app.image}
+            alt={app.name}
+            className="app-logo"
+            width={48}
+            height={48}
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              e.currentTarget.nextSibling.style.display = "flex";
+            }}
+          />
+          <div className="app-logo-placeholder" style={{ display: "none" }}>
+            {app.name?.charAt(0) ?? "?"}
+          </div>
+        </div>
+
+        <div className="app-info">
+          <h3 className="app-title">{app.name}</h3>
+          <p className="app-tagline">{app.tagline}</p>
+          {/* Status chips */}
+          <div className="app-meta">
+            <LaunchTodayBadge launchDate={app.launch_date} />
+            <PricingBadge pricingType={app.pricing_type} />
+            {(app.category ?? app.launch_tags?.[0]) && (
+              <span className="app-meta-tag">
+                {app.category ?? app.launch_tags?.[0]}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-      <span className="app-category-badge">
-        {app.category ?? app.launch_tags?.[0] ?? "General"}
-      </span>
-      <div className="app-actions">
-        <button
-          type="button"
-          className={`upvote-button${upvoted ? " upvoted" : ""}${upvoteLoading ? " pending" : ""}`}
-          aria-label={`Upvote ${app.name}`}
-          aria-pressed={upvoted}
-          disabled={upvoteLoading}
-          onClick={handleUpvote}
-        >
-          <CaretUpIcon />
-          <span className="upvote-count">{upvotes}</span>
-        </button>
-      </div>
+
+      {/* Right: upvote */}
+      <button
+        type="button"
+        className={`upvote-button${upvoted ? " upvoted" : ""}${upvoteLoading ? " pending" : ""}`}
+        aria-label={`Upvote ${app.name}`}
+        aria-pressed={upvoted}
+        disabled={upvoteLoading}
+        onClick={handleUpvote}
+      >
+        <CaretUpIcon />
+        <span className="upvote-count">{upvotes}</span>
+      </button>
     </article>
   );
 }
@@ -212,13 +216,12 @@ export default function AppsList() {
   const [activeSort, setActiveSort] = React.useState("upvotes");
   const [selectedApp, setSelectedApp] = React.useState(null);
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
+  const [searchInput, setSearchInput] = React.useState("");
+  const searchTimer = React.useRef(null);
 
   const { user, openAuthModal } = useAuth();
-
-  // Live category list from Supabase (with "Semua" prepended)
   const { categories } = useCategories();
 
-  // Live app list from Supabase
   const {
     apps: appsData,
     loading,
@@ -231,9 +234,6 @@ export default function AppsList() {
     sort: activeSort,
   });
 
-  // Debounced search
-  const [searchInput, setSearchInput] = React.useState("");
-  const searchTimer = React.useRef(null);
   function handleSearchChange(e) {
     const val = e.target.value;
     setSearchInput(val);
@@ -248,12 +248,11 @@ export default function AppsList() {
     if (user) {
       setShowSubmitModal(true);
     } else {
-      // Use AuthContext modal — queues submit modal open after login
       openAuthModal(() => setShowSubmitModal(true));
     }
   }
 
-  // Sidebar: tech stacks derived from richContent kv blocks
+  // Sidebar: tech stacks from richContent kv + builtWith
   const techStacks = React.useMemo(() => {
     const stacks = new Set();
     appsData.forEach((app) => {
@@ -261,8 +260,8 @@ export default function AppsList() {
       if (kvBlock) {
         kvBlock.rows.forEach((row) => {
           if (row.label === "Tech Stack" && row.value) {
-            row.value.split(/[+&,]/).forEach((tech) => {
-              const trimmed = tech.trim();
+            row.value.split(/[+&,]/).forEach((t) => {
+              const trimmed = t.trim();
               if (trimmed) stacks.add(trimmed);
             });
           }
@@ -295,43 +294,17 @@ export default function AppsList() {
   }, [appsData]);
 
   const featuredProject = appsData[0] ?? null;
-
-  // "Hari ini" filter active and no results
   const isHariIniEmpty =
     activeSort === "today" && !loading && !error && appsData.length === 0;
 
   return (
     <section className="apps-page-layout">
       {/* ---------------------------------------------------------------- */}
-      {/* Main column                                                       */}
+      {/* Left sidebar — categories                                         */}
       {/* ---------------------------------------------------------------- */}
-      <div className="apps-main-col">
-        {/* Toolbar: search + submit */}
-        <div className="apps-toolbar">
-          <label className="search-wrap" htmlFor="apps-search">
-            <SearchIcon />
-            <input
-              id="apps-search"
-              type="search"
-              className="search-input"
-              placeholder="Cari apps..."
-              value={searchInput}
-              onChange={handleSearchChange}
-              aria-label="Cari apps"
-            />
-          </label>
-          <button
-            type="button"
-            className="cta-btn"
-            onClick={handleSubmitClick}
-            aria-label="Submit app baru"
-          >
-            + Submit App
-          </button>
-        </div>
-
-        {/* Category filter tabs */}
-        <nav className="category-tabs" aria-label="Filter kategori">
+      <aside className="apps-left-sidebar">
+        <p className="left-sidebar-title">Kategori</p>
+        <nav className="tags-list" aria-label="Filter kategori">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -344,6 +317,36 @@ export default function AppsList() {
             </button>
           ))}
         </nav>
+      </aside>
+
+      {/* ---------------------------------------------------------------- */}
+      {/* Main feed                                                         */}
+      {/* ---------------------------------------------------------------- */}
+      <div className="apps-main-feed">
+        {/* Toolbar */}
+        <div className="apps-toolbar">
+          <div className="search-bar-wrap">
+            <SearchIcon />
+            <input
+              id="apps-search"
+              type="search"
+              className="search-input"
+              placeholder="Cari apps..."
+              value={searchInput}
+              onChange={handleSearchChange}
+              aria-label="Cari apps"
+            />
+          </div>
+          <button
+            type="button"
+            className="cta-button"
+            onClick={handleSubmitClick}
+            aria-label="Submit app baru"
+            style={{ height: 40, fontSize: 14, padding: "0 18px" }}
+          >
+            + Submit App
+          </button>
+        </div>
 
         {/* Sort controls */}
         <SortControls activeSort={activeSort} onChange={setActiveSort} />
@@ -407,13 +410,16 @@ export default function AppsList() {
       </div>
 
       {/* ---------------------------------------------------------------- */}
-      {/* Sidebar                                                           */}
+      {/* Right sidebar                                                     */}
       {/* ---------------------------------------------------------------- */}
       <aside className="apps-sidebar">
         {featuredProject && (
           <div className="sidebar-widget">
             <span className="sidebar-eyebrow">Featured</span>
-            <article className="library-card featured-card">
+            <article
+              className="library-card"
+              style={{ display: "flex", flexDirection: "column" }}
+            >
               <div className="library-card-hero">
                 <div className="library-card-screenshot-wrap">
                   <img
@@ -426,10 +432,27 @@ export default function AppsList() {
               </div>
               <div className="library-card-ribbon">
                 <strong>{featuredProject.name}</strong>
-                <span>{featuredProject.status}</span>
+                <span>
+                  {featuredProject.launch_tags?.[0] ?? featuredProject.status}
+                </span>
               </div>
-              <div className="library-card-meta">
-                <p>{featuredProject.tagline}</p>
+              <div
+                className="library-card-meta"
+                style={{ padding: "8px 12px 12px" }}
+              >
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#55606d",
+                    margin: 0,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {featuredProject.tagline}
+                </p>
               </div>
             </article>
           </div>

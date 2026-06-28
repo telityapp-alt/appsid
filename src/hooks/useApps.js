@@ -162,7 +162,7 @@ export function useApps({
              launch_tags, upvotes_count, reviews_count,
              launch_date, status, pricing_type, created_at,
              description, website_url, built_with, is_open_source,
-             app_makers ( id, name, avatar_url, role, twitter, order_index )`,
+             app_makers ( id, name, avatar_url, role, twitter_handle, order_index )`,
             { count: "exact" },
           )
           .eq("status", "live");

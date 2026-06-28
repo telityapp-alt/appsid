@@ -54,7 +54,7 @@ export function normalizeAppRow(row) {
             name: m.name ?? "",
             avatar_url: m.avatar_url ?? null,
             role: m.role ?? null,
-            twitter: m.twitter ?? null,
+            twitter_handle: m.twitter_handle ?? null,
           }))
       : [],
     // Flat names list — RetroPopover uses `app.makers`
