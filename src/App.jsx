@@ -24,6 +24,7 @@ import PreppyPage from "./PreppyPage";
 import MarketplacePage from "./MarketplacePage";
 import BursaPage from "./BursaPage";
 import ForumPage from "./ForumPage";
+import ForumPostPage from "./ForumPostPage";
 import EventsPage from "./EventsPage";
 import JobsPage from "./JobsPage";
 import ToolsPage from "./ToolsPage";
@@ -2166,6 +2167,14 @@ function App() {
             element={
               <main className="content content-wide">
                 <ForumPage />
+              </main>
+            }
+          />
+          <Route
+            path="/forum/:postId"
+            element={
+              <main className="content content-wide">
+                <ForumPostPage />
               </main>
             }
           />
